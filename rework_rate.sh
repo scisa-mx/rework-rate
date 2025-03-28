@@ -4,8 +4,8 @@
 OUTPUT_CHANGES="rework_changes.txt"
 OUTPUT_SPECIFIC="specific_rework_changes.txt"
 OUTPUT_PERCENTAGE="rework_percentage.txt"
-EXCLUDED_FILES="CHANGELOG.md package.json tailwind.config.js"
-DAYS=21
+EXCLUDED_FILES="CHANGELOG.md appsettings.json appsettings.*.json \ bin/ obj/ \*.csproj *.sln \wwwroot/ \Migrations/ \*.g.cs *.g.i.cs \*.designer.cs \*.razor.g.cs *.dll"
+DAYS=23
 
 rm -f "$OUTPUT_CHANGES" "$OUTPUT_SPECIFIC" "$OUTPUT_PERCENTAGE"
 
@@ -15,9 +15,9 @@ if ! git rev-parse --is-inside-work-tree &>/dev/null; then
     exit 1
 fi
 
-# Obtener el rango de commits de los últimos 80 días
-START_DATE=$(date -d "-${DAYS} days" +%Y-%m-%d)
-END_DATE=$(date +%Y-%m-%d)
+# Obtener el rango de commits de los últimos X días
+START_DATE=$(date -d "-${DAYS} days" +%Y-%m-%dT00:00:00Z)
+END_DATE=$(date +%Y-%m-%dT23:59:59Z)
 COMMITS=$(git rev-list --since="$START_DATE" --until="$END_DATE" HEAD)
 
 if [ -z "$COMMITS" ]; then
@@ -100,3 +100,40 @@ echo "Cálculo completado."
 echo "Detalles generales escritos en: $OUTPUT_CHANGES"
 echo "Cambios específicos escritos en: $OUTPUT_SPECIFIC"
 echo "Porcentaje de rework escrito en: $OUTPUT_PERCENTAGE"
+
+# Obtener información del repositorio y PR
+REPO_URL=$(git config --get remote.origin.url)
+
+# Obtener información del PR actual
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [[ $CURRENT_BRANCH == "master" ]]; then
+    # Si estamos en master, obtener el último PR mergeado
+    PR_NUMBER=$(git log -1 --pretty=%B | grep -oP '(?<=#)\d+' || echo "N/A")
+    AUTHOR=$(git log -1 --pretty=%an || echo "N/A")
+    APPROVER=$(git log -1 --pretty=%cn || echo "N/A")
+else
+    # Si estamos en una rama de feature, obtener información del PR actual
+    PR_NUMBER=$(git log -1 --pretty=%B | grep -oP '(?<=#)\d+' || echo "N/A")
+    AUTHOR=$(git config user.name || echo "N/A")
+    APPROVER="N/A"  # No hay aprobador hasta que se haga merge
+fi
+
+# Hacer la llamada a la API usando las variables que ya tenemos
+echo "Enviando datos a la API..."
+curl -X POST http://localhost:8000/v1/repo-rework-rates \
+-H "Content-Type: application/json" \
+-d "{
+    \"repo_url\": \"$REPO_URL\",
+    \"pr_number\": \"$PR_NUMBER\",
+    \"author\": \"$AUTHOR\",
+    \"pr_approver\": \"$APPROVER\",
+    \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\",
+    \"total_commits\": $total_commits,
+    \"period_start\": \"$START_DATE\",
+    \"period_end\": \"$END_DATE\",
+    \"modified_lines\": $total_lines,
+    \"rework_lines\": $rework_lines,
+    \"rework_percentage\": $rework_percentage
+}"
+
+echo "Datos enviados a la API." 
