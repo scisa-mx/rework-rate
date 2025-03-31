@@ -5,7 +5,7 @@ OUTPUT_CHANGES="rework_changes.txt"
 OUTPUT_SPECIFIC="specific_rework_changes.txt"
 OUTPUT_PERCENTAGE="rework_percentage.txt"
 EXCLUDED_FILES="CHANGELOG.md appsettings.json appsettings.*.json \ bin/ obj/ \*.csproj *.sln \wwwroot/ \Migrations/ \*.g.cs *.g.i.cs \*.designer.cs \*.razor.g.cs *.dll"
-DAYS=23
+DAYS=26
 
 rm -f "$OUTPUT_CHANGES" "$OUTPUT_SPECIFIC" "$OUTPUT_PERCENTAGE"
 
@@ -118,22 +118,44 @@ else
     APPROVER="N/A"  # No hay aprobador hasta que se haga merge
 fi
 
-# Hacer la llamada a la API usando las variables que ya tenemos
+# Hacer la llamada a la API
 echo "Enviando datos a la API..."
-curl -X POST http://localhost:8000/v1/repo-rework-rates \
--H "Content-Type: application/json" \
--d "{
-    \"repo_url\": \"$REPO_URL\",
-    \"pr_number\": \"$PR_NUMBER\",
-    \"author\": \"$AUTHOR\",
-    \"pr_approver\": \"$APPROVER\",
-    \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\",
-    \"total_commits\": $total_commits,
-    \"period_start\": \"$START_DATE\",
-    \"period_end\": \"$END_DATE\",
-    \"modified_lines\": $total_lines,
-    \"rework_lines\": $rework_lines,
-    \"rework_percentage\": $rework_percentage
-}"
 
-echo "Datos enviados a la API." 
+# Escapar caracteres especiales en las variables
+AUTHOR=$(echo "$AUTHOR" | sed 's/\\/\\\\/g')
+REPO_URL=$(echo "$REPO_URL" | sed 's/\\/\\\\/g')
+
+# Crear el JSON usando printf para mejor formato
+json_data=$(printf '{
+    "repo_url": "%s",
+    "pr_number": "%s",
+    "author": "%s",
+    "pr_approver": "%s",
+    "timestamp": "%s",
+    "total_commits": %d,
+    "period_start": "%s",
+    "period_end": "%s",
+    "modified_lines": %d,
+    "rework_lines": %d,
+    "rework_percentage": %.2f
+}' \
+    "${REPO_URL}" \
+    "${PR_NUMBER}" \
+    "${AUTHOR}" \
+    "${APPROVER}" \
+    "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
+    "${total_commits}" \
+    "${START_DATE}" \
+    "${END_DATE}" \
+    "${total_lines}" \
+    "${rework_lines}" \
+    "${rework_percentage}")
+
+# Mostrar el JSON para verificación
+echo "JSON a enviar:"
+echo "$json_data"
+
+# Enviar a la API usando --data-raw para evitar problemas de escape
+curl -X POST http://localhost:8000/v1/repo-rework-rates \
+    -H "Content-Type: application/json" \
+    --data-raw "$json_data"

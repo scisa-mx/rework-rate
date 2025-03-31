@@ -1,9 +1,17 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.responses import RedirectResponse
-from models import ReworkData
+from sqlalchemy.orm import Session
+from models import ReworkData, ReworkDataDB
+from database import get_db, engine, Base
 from datetime import datetime
-import json
-import os
+import logging
+
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Crear las tablas
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Rework Rate API")
 
@@ -11,40 +19,30 @@ app = FastAPI(title="Rework Rate API")
 async def root():
     return "/v1/repo-rework-rates"
 
-# Lista para almacenar los datos (en un entorno de producción, usarías una base de datos)
-rework_records = []
-
 @app.post("/v1/repo-rework-rates")
-async def create_rework_data(data: ReworkData):
+async def create_rework_data(data: ReworkData, db: Session = Depends(get_db)):
     try:
-        # Agregar timestamp si no se proporciona
-        if not data.timestamp:
-            data.timestamp = datetime.now()
-        
-        # Convertir el modelo a diccionario
-        record = data.dict()
-        
-        # Agregar a la lista de registros
-        rework_records.append(record)
-        
-        # Guardar en un archivo JSON (solución temporal)
-        with open("rework_data.json", "w") as f:
-            json.dump(rework_records, f, default=str)
-        
-        return {"message": "Datos guardados exitosamente", "data": record}
+        logger.info(f"Datos recibidos: {data}")
+        db_rework = ReworkDataDB(**data.dict())
+        db.add(db_rework)
+        db.commit()
+        db.refresh(db_rework)
+        return {"message": "Datos guardados exitosamente", "data": data}
     except Exception as e:
+        logger.error(f"Error al procesar datos: {str(e)}")
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/v1/repo-rework-rates")
-async def get_rework_data():
-    return rework_records
+async def get_rework_data(db: Session = Depends(get_db)):
+    return db.query(ReworkDataDB).all()
 
 @app.get("/v1/repo-rework-rates/{pr_number}")
-async def get_rework_data_by_pr(pr_number: str):
-    for record in rework_records:
-        if record["pr_number"] == pr_number:
-            return record
-    raise HTTPException(status_code=404, detail="PR no encontrado")
+async def get_rework_data_by_pr(pr_number: str, db: Session = Depends(get_db)):
+    record = db.query(ReworkDataDB).filter(ReworkDataDB.pr_number == pr_number).first()
+    if record is None:
+        raise HTTPException(status_code=404, detail="PR no encontrado")
+    return record
 
 if __name__ == "__main__":
     import uvicorn
