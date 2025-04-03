@@ -1,11 +1,30 @@
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
+import urllib.parse
+from sqlalchemy.engine import URL
+import os
 
-# Conexión a MSSQL
-SQLALCHEMY_DATABASE_URL = "mssql+pyodbc://sa:2Oc28XhT65R0s7B@sql:1433/rework_rate?driver=ODBC+Driver+17+for+SQL+Server"
+# Cargar variables de entorno
+load_dotenv(".env.development")
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL)
+# Obtener variables del entorno
+DB_USER = os.getenv("DB_USER", "sa")
+DB_PASSWORD = os.getenv("DB_PASSWORD", "Scis#Passw0rd")
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = os.getenv("DB_PORT", "1433")
+DB_NAME = os.getenv("DB_NAME", "rework_data")
+
+
+connection_string = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={DB_HOST},{DB_PORT};DATABASE={DB_NAME};UID={DB_USER};PWD={DB_PASSWORD}"
+connection_url = URL.create(
+    "mssql+pyodbc",
+    query={"odbc_connect": connection_string}
+)
+
+engine = create_engine(connection_url)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
