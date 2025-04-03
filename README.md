@@ -58,3 +58,19 @@ El script generará tres archivos:
 #### ¿Por qué es importante este benchmark?
 El Rework Rate Benchmark es útil para medir el nivel de retrabajo en un proyecto. El retrabajo puede ser costoso y a menudo indica problemas en el proceso de desarrollo, como una mala planificación, especificaciones incompletas o errores de diseño. Este script te ayuda a identificar áreas del código que han sido modificadas repetidamente, lo que puede ser una señal de que se necesita una mejora en la calidad del código o en los procesos de desarrollo.
 
+
+## ¿Cómo instalar y correr? 
+
+Primero instala las librerias necesarias:
+```sh
+pip install -r requirements.txt
+```
+
+Enciende el servidor de uvicorn:
+```sh
+uvicorn main:app --reload
+```
+
+Puedes visitar swagger el la siguiente liga:
+
+http://127.0.0.1:8000/docs#
