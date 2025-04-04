@@ -1,13 +1,12 @@
 import strawberry
 from typing import List, Optional
-from datetime import datetime
 from fastapi import FastAPI, Depends
 from strawberry.fastapi import GraphQLRouter
 from sqlalchemy.orm import Session
 from database import get_db, engine, Base
 import logging
 from models.rework import ReworkDataDB
-from schemas.rework import ReworkDataType, ReworkDataInput
+from models.rework import ReworkDataType, ReworkDataInput
 from resolvers.rework import convert_to_type
 
 
