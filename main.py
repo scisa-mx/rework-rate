@@ -1,49 +1,62 @@
-from fastapi import FastAPI, HTTPException, Depends
-from fastapi.responses import RedirectResponse
-from sqlalchemy.orm import Session
-from models import ReworkData, ReworkDataDB
-from database import get_db, engine, Base
+import strawberry
+from typing import List, Optional
 from datetime import datetime
+from fastapi import FastAPI, Depends
+from strawberry.fastapi import GraphQLRouter
+from sqlalchemy.orm import Session
+from database import get_db, engine, Base
 import logging
+from models.rework import ReworkDataDB
+from schemas.rework import ReworkDataType, ReworkDataInput
+from resolvers.rework import convert_to_type
+
+
+# Crear las tablas en la base de datos
+Base.metadata.create_all(bind=engine)
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Crear las tablas
-Base.metadata.create_all(bind=engine)
+# Definir las consultas
+@strawberry.type
+class Query:
+    @strawberry.field
+    def get_rework_data(self, info) -> List[ReworkDataType]:
+        db: Session = info.context["db"]
+        return [convert_to_type(record) for record in db.query(ReworkDataDB).all()]
 
-app = FastAPI(title="Rework Rate API")
+    @strawberry.field
+    def get_rework_data_by_pr(self, info, pr_number: str) -> Optional[ReworkDataType]:
+        db: Session = info.context["db"]
+        record = db.query(ReworkDataDB).filter(ReworkDataDB.pr_number == pr_number).first()
+        return convert_to_type(record) if record else None
 
-@app.get("/", response_class=RedirectResponse, status_code=308)
-async def root():
-    return "/v1/repo-rework-rates"
-
-@app.post("/v1/repo-rework-rates")
-async def create_rework_data(data: ReworkData, db: Session = Depends(get_db)):
-    try:
-        logger.info(f"Datos recibidos: {data}")
-        db_rework = ReworkDataDB(**data.dict())
-        db.add(db_rework)
+# Definir las mutaciones
+@strawberry.type
+class Mutation:
+    @strawberry.mutation
+    def create_rework_data(self, info, data: ReworkDataInput) -> ReworkDataType:
+        db: Session = info.context["db"]
+        new_record = ReworkDataDB(**data.__dict__)
+        db.add(new_record)
         db.commit()
-        db.refresh(db_rework)
-        return {"message": "Datos guardados exitosamente", "data": data}
-    except Exception as e:
-        logger.error(f"Error al procesar datos: {str(e)}")
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
+        db.refresh(new_record)
+        logger.info(f"Registro creado: {new_record}")
+        return convert_to_type(new_record)
 
-@app.get("/v1/repo-rework-rates")
-async def get_rework_data(db: Session = Depends(get_db)):
-    return db.query(ReworkDataDB).all()
+# Inyectar contexto con sesión de DB
+async def get_context(db: Session = Depends(get_db)):
+    return {"db": db}
 
-@app.get("/v1/repo-rework-rates/{pr_number}")
-async def get_rework_data_by_pr(pr_number: str, db: Session = Depends(get_db)):
-    record = db.query(ReworkDataDB).filter(ReworkDataDB.pr_number == pr_number).first()
-    if record is None:
-        raise HTTPException(status_code=404, detail="PR no encontrado")
-    return record
+# Crear el esquema GraphQL
+schema = strawberry.Schema(query=Query, mutation=Mutation)
+
+# Inicializar FastAPI y agregar GraphQL
+app = FastAPI(title="Rework Rate API con GraphQL")
+graphql_app = GraphQLRouter(schema, context_getter=get_context)
+app.include_router(graphql_app, prefix="/graphql")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000) 
+    uvicorn.run(app, host="0.0.0.0", port=8000)
