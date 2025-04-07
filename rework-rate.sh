@@ -125,37 +125,47 @@ echo "Enviando datos a la API..."
 AUTHOR=$(echo "$AUTHOR" | sed 's/\\/\\\\/g')
 REPO_URL=$(echo "$REPO_URL" | sed 's/\\/\\\\/g')
 
-# Crear el JSON usando printf para mejor formato
-json_data=$(printf '{
-    "repo_url": "%s",
-    "pr_number": "%s",
-    "author": "%s",
-    "pr_approver": "%s",
-    "timestamp": "%s",
-    "total_commits": %d,
-    "period_start": "%s",
-    "period_end": "%s",
-    "modified_lines": %d,
-    "rework_lines": %d,
-    "rework_percentage": %.2f
-}' \
-    "${REPO_URL}" \
-    "${PR_NUMBER}" \
-    "${AUTHOR}" \
-    "${APPROVER}" \
-    "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
-    "${total_commits}" \
-    "${START_DATE}" \
-    "${END_DATE}" \
-    "${total_lines}" \
-    "${rework_lines}" \
-    "${rework_percentage}")
+# Variables que obtienes de tu proceso o script dinámico
+REPO_URL="https://scisa.visualstudio.com/SCISA_Authenticator/_git/SCISA_Authenticator"
+PR_NUMBER="125"
+AUTHOR="Scisa1"
+APPROVER="reviewer_user"
+START_DATE="2025-04-01T00:00:00Z"
+END_DATE="2025-04-07T23:59:59Z"
+total_commits=5
+total_lines=200
+rework_lines=50
+rework_percentage=$(awk "BEGIN {printf \"%.2f\", $rework_lines / $total_lines * 100}")
+
+
+# Construcción del payload GraphQL
+graphql_query=$(cat <<EOF
+{
+  "query": "mutation CreateReworkData(\$data: ReworkDataInput!) { createReworkData(data: \$data) { id repoUrl prNumber author } }",
+  "variables": {
+    "data": {
+      "repoUrl": "$REPO_URL",
+      "prNumber": "$PR_NUMBER",
+      "author": "$AUTHOR",
+      "prApprover": "$APPROVER",
+      "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+      "totalCommits": $total_commits,
+      "periodStart": "$START_DATE",
+      "periodEnd": "$END_DATE",
+      "modifiedLines": $total_lines,
+      "reworkLines": $rework_lines,
+      "reworkPercentage": $rework_percentage
+    }
+  }
+}
+EOF
+)
 
 # Mostrar el JSON para verificación
-echo "JSON a enviar:"
-echo "$json_data"
+echo "Enviando a GraphQL:"
+echo "$graphql_query"
 
-# Enviar a la API usando --data-raw para evitar problemas de escape
-curl -X POST http://localhost:8000/v1/repo-rework-rates \
+# Enviar la petición al endpoint GraphQL
+curl -X POST http://127.0.0.1:8000/graphql \
     -H "Content-Type: application/json" \
-    --data-raw "$json_data"
+    --data-raw "$graphql_query"

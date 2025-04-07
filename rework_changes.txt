@@ -1,0 +1,105 @@
+Detalles generales de los cambios de rework:
+File: main.py
+Lines Modified More Than Twice:
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -from fastapi import FastAPI, HTTPException, Depends
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -from fastapi.responses import RedirectResponse
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -from models import ReworkData, ReworkDataDB
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -from datetime import datetime
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -# Crear las tablas
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -Base.metadata.create_all(bind=engine)
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -app = FastAPI(title="Rework Rate API")
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -@app.get("/", response_class=RedirectResponse, status_code=308)
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -async def root():
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -    return "/v1/repo-rework-rates"
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -@app.post("/v1/repo-rework-rates")
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -async def create_rework_data(data: ReworkData, db: Session = Depends(get_db)):
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -    try:
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -        logger.info(f"Datos recibidos: {data}")
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -        db_rework = ReworkDataDB(**data.dict())
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -        db.add(db_rework)
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -        db.commit()
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -        db.refresh(db_rework)
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -        return {"message": "Datos guardados exitosamente", "data": data}
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -    except Exception as e:
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -        logger.error(f"Error al procesar datos: {str(e)}")
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -        db.rollback()
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -        raise HTTPException(status_code=500, detail=str(e))
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -@app.get("/v1/repo-rework-rates")
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -async def get_rework_data(db: Session = Depends(get_db)):
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -    return db.query(ReworkDataDB).all()
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -@app.get("/v1/repo-rework-rates/{pr_number}")
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -async def get_rework_data_by_pr(pr_number: str, db: Session = Depends(get_db)):
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -    record = db.query(ReworkDataDB).filter(ReworkDataDB.pr_number == pr_number).first()
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -    if record is None:
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -        raise HTTPException(status_code=404, detail="PR no encontrado")
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -    return record
+Commit 1fcd29d2a774bd9c072e7b8060e00bfc3615600b: -    uvicorn.run(app, host="0.0.0.0", port=8000) 
+-------------------------------------
+File: main.py
+Lines Modified More Than Twice:
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -from fastapi import FastAPI, HTTPException
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -from models import ReworkData
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -import json
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -import os
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -# Lista para almacenar los datos (en un entorno de producción, usarías una base de datos)
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -rework_records = []
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -async def create_rework_data(data: ReworkData):
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -        # Agregar timestamp si no se proporciona
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -        if not data.timestamp:
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -            data.timestamp = datetime.now()
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -        
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -        # Convertir el modelo a diccionario
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -        record = data.dict()
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -        
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -        # Agregar a la lista de registros
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -        rework_records.append(record)
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -        
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -        # Guardar en un archivo JSON (solución temporal)
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -        with open("rework_data.json", "w") as f:
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -            json.dump(rework_records, f, default=str)
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -        
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -        return {"message": "Datos guardados exitosamente", "data": record}
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -async def get_rework_data():
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -    return rework_records
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -async def get_rework_data_by_pr(pr_number: str):
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -    for record in rework_records:
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -        if record["pr_number"] == pr_number:
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -            return record
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -    raise HTTPException(status_code=404, detail="PR no encontrado")
+-------------------------------------
+File: requirements.txt
+Lines Modified More Than Twice:
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -python-dotenv==1.0.0
+Commit 53a1865b32eee8b9186ad062c3c374558195a6cc: -sqlalchemy==2.0.23 
+-------------------------------------
+File: main.py
+Lines Modified More Than Twice:
+
+-------------------------------------
+File: models.py
+Lines Modified More Than Twice:
+
+-------------------------------------
+File: requirements.txt
+Lines Modified More Than Twice:
+
+-------------------------------------
+File: README.md
+Lines Modified More Than Twice:
+Commit 130a92f777fa8517cdc864084f18d75936df233e: -# rework-rate
+-------------------------------------
+File: rework-rate.sh
+Lines Modified More Than Twice:
+Commit 7e562fa90f18529a3e7f054ca371a9f9465e9c35: -EXCLUDED_FILES="CHANGELOG.md package.json Directory.Build.targets"
+Commit 7e562fa90f18529a3e7f054ca371a9f9465e9c35: -
+Commit 7e562fa90f18529a3e7f054ca371a9f9465e9c35: -if [ $total_changes -eq 0 ]; then
+Commit 7e562fa90f18529a3e7f054ca371a9f9465e9c35: -    rework_percentage=$(awk "BEGIN {printf \"%.2f\", ($rework_changes/$total_changes)*100}")
+Commit 7e562fa90f18529a3e7f054ca371a9f9465e9c35: -echo "$rework_percentage" > "$OUTPUT_PERCENTAGE"
+-------------------------------------
+File: rework-rate.sh
+Lines Modified More Than Twice:
+
+-------------------------------------
