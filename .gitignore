@@ -16,6 +16,9 @@ ENV/
 *.log
 *.json
 *.tmp
+rework_changes.txt
+specific_rework_changes.txt
+rework_percentage.txt
 
 # Archivos de Docker
 .docker/
