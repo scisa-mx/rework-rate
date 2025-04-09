@@ -1,6 +1,0 @@
-Resumen del análisis de Rework:
----------------------------------
-REWORK %4.82
-Total de commits procesados: 13
-Total de líneas modificadas: 1598
-Total de líneas de rework (modificadas más de dos veces): 77
