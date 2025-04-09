@@ -125,19 +125,6 @@ echo "Enviando datos a la API..."
 AUTHOR=$(echo "$AUTHOR" | sed 's/\\/\\\\/g')
 REPO_URL=$(echo "$REPO_URL" | sed 's/\\/\\\\/g')
 
-# Variables que obtienes de tu proceso o script dinámico
-REPO_URL="https://scisa.visualstudio.com/SCISA_Authenticator/_git/SCISA_Authenticator"
-PR_NUMBER="125"
-AUTHOR="Scisa1"
-APPROVER="reviewer_user"
-START_DATE="2025-04-01T00:00:00Z"
-END_DATE="2025-04-07T23:59:59Z"
-total_commits=5
-total_lines=200
-rework_lines=50
-rework_percentage=$(awk "BEGIN {printf \"%.2f\", $rework_lines / $total_lines * 100}")
-
-
 # Construcción del payload GraphQL
 graphql_query=$(cat <<EOF
 {
