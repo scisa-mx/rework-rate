@@ -153,6 +153,6 @@ echo "Enviando a GraphQL:"
 echo "$graphql_query"
 
 # Enviar la petición al endpoint GraphQL
-curl -X POST http://api.rework-rate.scisa.com.mx/graphql \
+curl -X POST https://api.rework-rate.scisa.com.mx/graphql \
     -H "Content-Type: application/json" \
     --data-raw "$graphql_query"
