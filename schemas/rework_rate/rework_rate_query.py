@@ -1,8 +1,12 @@
 from sqlalchemy.orm import Session
 import strawberry
 from models.rework import ReworkDataDB
-from schemas.rework_rate.rework_rate_types import ReworkDataType
+from schemas.rework_rate.rework_rate_types import ReworkDataType, RepoUrlType
 from resolvers.rework import convert_to_type
+from core.utils.formatter import extract_repo_name
+from typing import Optional
+from datetime import datetime
+from sqlalchemy import and_
 
 @strawberry.type
 class Query:
@@ -17,3 +21,34 @@ class Query:
         db: Session = info.context["db"]
         record = db.query(ReworkDataDB).filter(ReworkDataDB.pr_number == pr_number).first()
         return convert_to_type(record) if record else None
+
+    @strawberry.field
+    def get_all_repos(self, info) -> list[RepoUrlType]:
+        db: Session = info.context["db"]
+        distinct_urls = db.query(ReworkDataDB.repo_url).distinct().all()
+        return [
+            RepoUrlType(url=url[0], name=extract_repo_name(url[0]))
+            for url in distinct_urls
+        ]
+    @strawberry.field
+    def get_rework_history(
+        self,
+        info,
+        repo_url: str,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None
+    ) -> list[ReworkDataType]:
+        db: Session = info.context["db"]
+        
+        query = db.query(ReworkDataDB).filter(ReworkDataDB.repo_url == repo_url)
+
+        if start_date and end_date:
+            query = query.filter(
+                and_(
+                    ReworkDataDB.timestamp >= start_date,
+                    ReworkDataDB.timestamp <= end_date
+                )
+            )
+        
+        records = query.all()
+        return [convert_to_type(record) for record in records]

@@ -29,3 +29,8 @@ class ReworkDataInput:
     modified_lines: int
     rework_lines: int
     rework_percentage: float
+
+@strawberry.type
+class RepoUrlType:
+    url: str
+    name: str
