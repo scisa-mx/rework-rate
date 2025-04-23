@@ -34,3 +34,8 @@ class ReworkDataInput:
 class RepoUrlType:
     url: str
     name: str
+
+@strawberry.type
+class MeanAndMedianType:
+    mean: float
+    median: float

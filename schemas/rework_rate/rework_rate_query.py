@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 import strawberry
 from models.rework import ReworkDataDB
-from schemas.rework_rate.rework_rate_types import ReworkDataType, RepoUrlType
+from schemas.rework_rate.rework_rate_types import ReworkDataType, RepoUrlType, MeanAndMedianType
 from resolvers.rework import convert_to_type
 from core.utils.formatter import extract_repo_name
 from typing import Optional
@@ -52,3 +52,40 @@ class Query:
         
         records = query.all()
         return [convert_to_type(record) for record in records]
+    
+    @strawberry.field
+    def get_mean_and_median(
+        self, 
+        info,
+        repo_url: str,
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None,
+    ) -> MeanAndMedianType:
+        db: Session = info.context["db"]
+        query = db.query(ReworkDataDB).filter(ReworkDataDB.repo_url == repo_url)
+        
+        # Apply date filters if provided
+        if start_date and end_date:
+            query = query.filter(
+                and_(
+                    ReworkDataDB.timestamp >= start_date,
+                    ReworkDataDB.timestamp <= end_date
+                )
+            )
+        # Get all records for the specified repo_url and date range
+        records = query.all()
+        if not records:
+            return MeanAndMedianType(mean=0.0, median=0.0)
+        
+        # Calculate mean and median of rework percentages
+        rework_percentages = [record.rework_percentage for record in records]
+        mean = sum(rework_percentages) / len(rework_percentages)
+        
+        sorted_percentages = sorted(rework_percentages)
+        n = len(sorted_percentages)
+        if n % 2 == 0:
+            median = (sorted_percentages[n // 2 - 1] + sorted_percentages[n // 2]) / 2
+        else:
+            median = sorted_percentages[n // 2]
+        
+        return MeanAndMedianType(mean=mean, median=median) 
