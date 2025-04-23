@@ -23,7 +23,7 @@ app = FastAPI(title="Rework Rate API con GraphQL")
 # Configurar CORS para permitir solicitudes desde el frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173", "https://rework-rate.scisa.com.mx"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

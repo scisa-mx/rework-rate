@@ -53,7 +53,7 @@ for commit in $COMMITS; do
 
     # Obtener los archivos modificados en el commit, excluyendo los archivos especificados
     modified_files=$(git diff-tree --no-commit-id --name-only -r "$commit" | grep -Ev "$EXCLUDE_PATTERN")
-    
+
     for file in $modified_files; do
         total_changes=$((total_changes + 1))
 
@@ -153,6 +153,6 @@ echo "Enviando a GraphQL:"
 echo "$graphql_query"
 
 # Enviar la petición al endpoint GraphQL
-curl -X POST http://127.0.0.1:8000/graphql \
+curl -X POST https://api.rework-rate.scisa.com.mx/graphql \
     -H "Content-Type: application/json" \
     --data-raw "$graphql_query"
