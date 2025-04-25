@@ -18,7 +18,7 @@ async def get_context(db: Session = Depends(get_db)):
 # Crear el esquema GraphQL
 schema = strawberry.Schema(query=Query, mutation=Mutation)
 
-app = FastAPI(title="Rework Rate API con GraphQL")
+app = FastAPI(title="Rework Rate API con GraphQL", version="0.1.0")
 
 # Configurar CORS para permitir solicitudes desde el frontend
 app.add_middleware(
