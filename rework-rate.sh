@@ -105,12 +105,14 @@ echo "Porcentaje de rework escrito en: $OUTPUT_PERCENTAGE"
 REPO_URL=$(git config --get remote.origin.url)
 
 # Obtener información del PR actual
-if [[ "$message" =~ Merged\ PR\ ([0-9]+) ]]; then
+MESSAGE=$(git log -1 --pretty=%B)
+if [[ "$MESSAGE" =~ Merged\ PR\ ([0-9]+) ]]; then
     PR_NUMBER="${BASH_REMATCH[1]}"
 else
     echo "No merged PR found."
-    PR_NUMBER = "N/A"
+    PR_NUMBER="N/A"
 fi
+
 AUTHOR=$(git log -1 --pretty=%an || echo "N/A")
 APPROVER=$(git log -1 --pretty=%cn || echo "N/A")
 
