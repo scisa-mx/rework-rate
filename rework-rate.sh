@@ -4,8 +4,8 @@
 OUTPUT_CHANGES="rework_changes.txt"
 OUTPUT_SPECIFIC="specific_rework_changes.txt"
 OUTPUT_PERCENTAGE="rework_percentage.txt"
-EXCLUDED_FILES="CHANGELOG.md appsettings.json appsettings.*.json \ bin/ obj/ \*.csproj *.sln \wwwroot/ \Migrations/ \*.g.cs *.g.i.cs \*.designer.cs \*.razor.g.cs *.dll"
-DAYS=26
+EXCLUDED_FILES="azure-pipelines.yml CHANGELOG.md appsettings.json appsettings.*.json \ bin/ obj/ \*.csproj *.sln \wwwroot/ \Migrations/ \*.g.cs *.g.i.cs \*.designer.cs \*.razor.g.cs *.dll"
+DAYS=21
 
 rm -f "$OUTPUT_CHANGES" "$OUTPUT_SPECIFIC" "$OUTPUT_PERCENTAGE"
 
@@ -105,18 +105,14 @@ echo "Porcentaje de rework escrito en: $OUTPUT_PERCENTAGE"
 REPO_URL=$(git config --get remote.origin.url)
 
 # Obtener información del PR actual
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [[ $CURRENT_BRANCH == "master" ]]; then
-    # Si estamos en master, obtener el último PR mergeado
-    PR_NUMBER=$(git log -1 --pretty=%B | grep -oP '(?<=#)\d+' || echo "N/A")
-    AUTHOR=$(git log -1 --pretty=%an || echo "N/A")
-    APPROVER=$(git log -1 --pretty=%cn || echo "N/A")
+if [[ "$message" =~ Merged\ PR\ ([0-9]+) ]]; then
+    PR_NUMBER="${BASH_REMATCH[1]}"
 else
-    # Si estamos en una rama de feature, obtener información del PR actual
-    PR_NUMBER=$(git log -1 --pretty=%B | grep -oP '(?<=#)\d+' || echo "N/A")
-    AUTHOR=$(git config user.name || echo "N/A")
-    APPROVER="N/A"  # No hay aprobador hasta que se haga merge
+    echo "No merged PR found."
+    PR_NUMBER = "N/A"
 fi
+AUTHOR=$(git log -1 --pretty=%an || echo "N/A")
+APPROVER=$(git log -1 --pretty=%cn || echo "N/A")
 
 # Hacer la llamada a la API
 echo "Enviando datos a la API..."
