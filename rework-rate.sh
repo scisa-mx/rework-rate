@@ -134,6 +134,7 @@ graphql_query=$(cat <<EOF
       "author": "$AUTHOR",
       "prApprover": "$APPROVER",
       "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+      "createdAtDate": "$(date -u +"%Y-%m-%d")",
       "totalCommits": $total_commits,
       "periodStart": "$START_DATE",
       "periodEnd": "$END_DATE",
