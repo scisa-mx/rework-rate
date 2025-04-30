@@ -22,8 +22,8 @@ class Mutation:
         db.commit()
         db.refresh(new_record)
         
-        # Usar el logger para registrar el evento
-        logger.info(f"Registro creado: {new_record}")
+        data_dict = {k: v for k, v in new_record.__dict__.items() if not k.startswith('_')}
+        logger.info(f"Registro creado: {data_dict}")
         
         return convert_to_type(new_record)
 
