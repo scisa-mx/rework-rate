@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 import strawberry
 from models.rework import ReworkDataDB
@@ -21,7 +22,25 @@ class Mutation:
         db.commit()
         db.refresh(new_record)
         
-        # Usar el logger para registrar el evento
-        logger.info(f"Registro creado: {new_record}")
+        data_dict = {k: v for k, v in new_record.__dict__.items() if not k.startswith('_')}
+        logger.info(f"Registro creado: {data_dict}")
         
         return convert_to_type(new_record)
+
+    @strawberry.mutation
+    def delete_repo_with_url(self, info, url: str) -> None:
+        db: Session = info.context["db"]
+
+        # Verificar si existen registros primero
+        exists = db.query(ReworkDataDB).filter(ReworkDataDB.repo_url == url).first()
+        if not exists:
+            # Usar el logger para registrar el evento
+            logger.warning(f"No se encontraron registros para la URL del repositorio: {url}")
+            raise HTTPException(status_code=404, detail=f"No se encontraron registros para la URL del repositorio: {url}")
+
+        # Eliminar los registros
+        db.query(ReworkDataDB).filter(ReworkDataDB.repo_url == url).delete()
+        db.commit()
+
+        logger.info(f"Registros eliminados para la URL del repositorio: {url}")
+        return None

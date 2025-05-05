@@ -45,11 +45,11 @@ class Query:
         if start_date and end_date:
             query = query.filter(
                 and_(
-                    ReworkDataDB.timestamp >= start_date,
-                    ReworkDataDB.timestamp <= end_date
+                    ReworkDataDB.period_start >= start_date,
+                    ReworkDataDB.period_start <= end_date
                 )
             )
-        
+        query = query.order_by(ReworkDataDB.period_start.asc())
         records = query.all()
         return [convert_to_type(record) for record in records]
     
@@ -62,14 +62,15 @@ class Query:
         end_date: Optional[datetime] = None,
     ) -> MeanAndMedianType:
         db: Session = info.context["db"]
+
         query = db.query(ReworkDataDB).filter(ReworkDataDB.repo_url == repo_url)
         
         # Apply date filters if provided
         if start_date and end_date:
             query = query.filter(
                 and_(
-                    ReworkDataDB.timestamp >= start_date,
-                    ReworkDataDB.timestamp <= end_date
+                    ReworkDataDB.period_start >= start_date,
+                    ReworkDataDB.period_start <= end_date
                 )
             )
         # Get all records for the specified repo_url and date range
