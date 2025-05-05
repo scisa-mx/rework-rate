@@ -5,4 +5,5 @@ description = "Un api que maneja las diferentes benchmarks de los repositorios d
 authors = [{ name = "Carlos Alberto Torres Cano", email = "carlos.torres@scisa.com.mx" }, {name="Abigail Morales Aquino", email="abigail.morales@scisa.com.mx"}]
 
 [urls]
-api_url = "https://rework-rate.scisa.com.mx"
+app_url = "https://rework-rate.scisa.com.mx"
+api_url = "https://api.rework-rate.scisa.com.mx/graphql"
