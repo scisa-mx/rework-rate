@@ -69,7 +69,7 @@ for commit in $COMMITS; do
         file_modified_lines["$file"]+=$'\n'"$modified_lines"
 
         # Registrar cambios específicos de rework si el archivo ya ha sido modificado más de dos veces
-        if [ ${file_change_count["$file"]} -gt 2 ]; then
+        if [ ${file_change_count["$file"]} -ge 2 ]; then
             echo "Rework specific detected: Commit $commit on file $file" >> "$OUTPUT_SPECIFIC"
             echo "File: $file" >> "$OUTPUT_CHANGES"
             echo "Lines Modified More Than Twice:" >> "$OUTPUT_CHANGES"
