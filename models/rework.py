@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime
+from sqlalchemy import Column, Integer, String, Float, DateTime, Date
 from database import Base
 
 class ReworkDataDB(Base):
@@ -16,3 +16,4 @@ class ReworkDataDB(Base):
     modified_lines = Column(Integer)
     rework_lines = Column(Integer)
     rework_percentage = Column(Float)
+    createdAtDate = Column(Date)
