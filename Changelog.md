@@ -1,6 +1,6 @@
 # SCISA Benchmarks API
 
-## 0.2.1 - 04/25/257
+## 0.2.2 - 04/25/257
 
 ### Resumen
 Se agregan facilidades para manejar la API y que los usuarios puedan eliminar repositorios mediante su url.
