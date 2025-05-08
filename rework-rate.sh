@@ -1,4 +1,6 @@
 #!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
 
 # Variables
 OUTPUT_CHANGES="rework_changes.txt"
@@ -151,6 +153,12 @@ echo "Enviando a GraphQL:"
 echo "$graphql_query"
 
 # Enviar la petición al endpoint GraphQL
-curl -X POST https://api.rework-rate.scisa.com.mx/graphql \
+http_status=$(curl -s -w "%{http_code}" -o /dev/null \
+    -X POST https://api.rework-rate.scisa.com.mx/graphql \
     -H "Content-Type: application/json" \
-    --data-raw "$graphql_query"
+    --data-raw "$graphql_query")
+
+if [[ "$http_status" -lt 200 || "$http_status" -ge 300 ]]; then
+    echo "ERROR: La API devolvió código HTTP $http_status"
+    exit 1
+fi
