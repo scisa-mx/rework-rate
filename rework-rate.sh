@@ -150,17 +150,32 @@ EOF
 )
 
 # Mostrar el JSON para verificación
-echo "Enviando a GraphQL:"
+echo "Enviando a GraphQL..."
 echo "$graphql_query"
 
-http_status=$(curl -s -w "%{http_code}" -o /dev/null \
-    -X POST https://api.rework-rate.scisa.com.mx/graphql \
-    -H "Content-Type: application/json" \
-    --data-raw "$graphql_query")
+# Enviar la petición y capturar cuerpo + HTTP status
+response=$(curl -s -w "\n%{http_code}" -X POST https://api.rework-rate.scisa.com.mx/graphql \
+  -H "Content-Type: application/json" \
+  --data-raw "$graphql_query")
 
+# Separar body y status
+http_body=$(echo "$response" | sed '$d')
+http_status=$(echo "$response" | tail -n1)
+
+# Verifica si el status HTTP está fuera del rango 2xx
 if [[ "$http_status" -lt 200 || "$http_status" -ge 300 ]]; then
-    echo >&2 "ERROR: La API devolvió HTTP $http_status"
-    exit 1
+  echo "❌ Error: HTTP status $http_status"
+  echo "Respuesta del servidor:"
+  echo "$http_body"
+  exit 1
 fi
 
-echo "Datos enviados correctamente (HTTP $http_status)."
+# Verifica si la respuesta contiene errores de GraphQL
+if echo "$http_body" | grep -q '"errors"'; then
+  echo "❌ Error en la petición GraphQL:"
+  echo "$http_body" | jq '.errors'
+  exit 1
+fi
+
+echo "✅ Datos enviados correctamente:"
+echo "$http_body" | jq '.data'
