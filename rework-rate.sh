@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -o pipefail
 IFS=$'\n\t'
 
 # Variables
@@ -152,13 +152,14 @@ EOF
 echo "Enviando a GraphQL:"
 echo "$graphql_query"
 
-# Enviar la petición al endpoint GraphQL
 http_status=$(curl -s -w "%{http_code}" -o /dev/null \
     -X POST https://api.rework-rate.scisa.com.mx/graphql \
     -H "Content-Type: application/json" \
     --data-raw "$graphql_query")
 
 if [[ "$http_status" -lt 200 || "$http_status" -ge 300 ]]; then
-    echo "ERROR: La API devolvió código HTTP $http_status"
+    echo >&2 "ERROR: La API devolvió HTTP $http_status"
     exit 1
 fi
+
+echo "Datos enviados correctamente (HTTP $http_status)."
