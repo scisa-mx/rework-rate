@@ -1,4 +1,27 @@
-venv/
+# Carpetas y archivos de Python
 __pycache__/
+*.py[cod]
+*.pyo
+*.pyd
 *.pyc
-rework_data.json
+
+# Entorno virtual
+venv/
+.env
+.env.*
+
+# Archivos de configuración del sistema o IDE
+*.log
+*.sqlite3
+*.db
+*.swp
+.DS_Store
+.idea/
+.vscode/
+*.bak
+
+# Test
+tests/
+.coverage
+htmlcov/
+.tox/
