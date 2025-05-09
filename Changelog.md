@@ -1,6 +1,6 @@
 # SCISA Benchmarks API
 
-## 0.3.0 - 09/05/2025
+## 0.3.1 - 09/05/2025
 
 ### Resumen
 Se agrega un campo nuevo para poder dicernir entre el lapso del rework y cuando se creo el reporte. 
@@ -8,6 +8,7 @@ Se añade tambien mejoras para el docker.
 
 ### Fixed
     - [220] Ahora al devoler el historico del rework se hace mediante el lapso del tiempo en el que se hizo el reporte, y no el lapso de tiempo del análisis.
+    - [220] Se arregla formato de fechas para las peticiones.
 
 ### Added
     - [220] Se agrega un campo nuevo llamado createdAtDate como punto de partida del reporte.

@@ -42,6 +42,11 @@ class Query:
         
         query = db.query(ReworkDataDB).filter(ReworkDataDB.repo_url == repo_url)
 
+        if start_date:
+            start_date = start_date.replace(tzinfo=None)
+        if end_date:
+            end_date = end_date.replace(tzinfo=None)
+
         if start_date and end_date:
             query = query.filter(
                 and_(
