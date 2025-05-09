@@ -26,3 +26,7 @@ rework_percentage.txt
 # Sistema operativo
 .DS_Store
 Thumbs.db
+
+# environment variables
+*.env 
+*.env.development

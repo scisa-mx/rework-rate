@@ -15,6 +15,7 @@ class ReworkDataType:
     modified_lines: int
     rework_lines: int
     rework_percentage: float
+    createdAtDate: datetime
 
 @strawberry.input
 class ReworkDataInput:
@@ -29,6 +30,7 @@ class ReworkDataInput:
     modified_lines: int
     rework_lines: int
     rework_percentage: float
+    createdAtDate: datetime
 
 @strawberry.type
 class RepoUrlType:

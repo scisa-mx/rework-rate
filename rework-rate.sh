@@ -2,12 +2,131 @@
 set -o pipefail
 IFS=$'\n\t'
 
+# ===================================================
 # Variables
+# ===================================================
 OUTPUT_CHANGES="rework_changes.txt"
 OUTPUT_SPECIFIC="specific_rework_changes.txt"
 OUTPUT_PERCENTAGE="rework_percentage.txt"
-EXCLUDED_FILES="azure-pipelines.yml CHANGELOG.md appsettings.json appsettings.*.json \ bin/ obj/ \*.csproj *.sln \wwwroot/ \Migrations/ \*.g.cs *.g.i.cs \*.designer.cs \*.razor.g.cs *.dll"
 DAYS=21
+EXCLUDED_FILES="\
+azure-pipelines.yml \
+CHANGELOG.md \
+appsettings.json \
+appsettings.*.json \
+bin/ \
+obj/ \
+*.csproj \
+*.sln \
+*.sln.docstates \
+*.rsuser \
+*.suo \
+*.user \
+*.userosscache \
+*.userprefs \
+mono_crash.* \
+*.dll \
+*.exe \
+*.pdb \
+*.cache \
+*.log \
+*.tmp \
+*.vspscc \
+*.vssscc \
+*.pidb \
+*.svclog \
+*.scc \
+*.ilk \
+*.meta \
+*.iobj \
+*.pch \
+*.ipdb \
+*.pgc \
+*.pgd \
+*.rsp \
+*.sbr \
+*.tlb \
+*.tli \
+*.tlh \
+*.tlog \
+*.VC.db \
+*.VC.VC.opendb \
+.vs/ \
+Logs/ \
+*.VisualState.xml \
+TestResult.xml \
+nunit-*.xml \
+BenchmarkDotNet.Artifacts/ \
+artifacts/ \
+*.coverage \
+*.coveragexml \
+*.code-workspace \
+node_modules/ \
+*.nupkg \
+*.snupkg \
+*.publishsettings \
+*.appx \
+*.appxbundle \
+*.appxupload \
+*.dbmdl \
+*.mdf \
+*.ldf \
+*.ndf \
+*.btp.cs \
+*.btm.cs \
+*.odx.cs \
+*.xsd.cs \
+*.designer.cs \
+*.razor.g.cs \
+*.g.cs \
+*.g.i.cs \
+*.tmp_proj \
+*.publish.xml \
+*.azurePubxml \
+*.pubxml \
+*.publishproj \
+PublishScripts/ \
+Generated\ Files/ \
+Generated_Code/ \
+wwwroot/ \
+Migrations/ \
+.vscode/ \
+.history/ \
+.idea/ \
+_ReSharper*/ \
+*.DotSettings.user \
+packages/ \
+*.bak \
+*_i.c \
+*_p.c \
+*_h.h \
+*.tss \
+*.jmconfig \
+OpenCover/ \
+FakesAssemblies/ \
+*.binlog \
+*.e2e \
+*.gpState \
+*.psess \
+*.vsp \
+*.vspx \
+*.sap \
+ClientBin/ \
+ServiceFabricBackup/ \
+*.rdl.data \
+*.rptproj.rsuser \
+*.bim.layout \
+*.bim_*.settings \
+*.rptproj.bak \
+.localhistory/ \
+.healthchecksdb/ \
+MigrationBackup/ \
+.publish/ \
+.publishxml/ \
+*.tmp.csproj \
+*.feature.cs \
+.config/ \
+"
 
 rm -f "$OUTPUT_CHANGES" "$OUTPUT_SPECIFIC" "$OUTPUT_PERCENTAGE"
 
@@ -90,7 +209,9 @@ else
     rework_percentage=$(awk "BEGIN {printf \"%.2f\", ($rework_lines/$total_lines)*100}")
 fi
 
+# ===================================================
 # Guardar el porcentaje de rework en el archivo
+# ===================================================
 echo "Resumen del análisis de Rework:" >> "$OUTPUT_PERCENTAGE"
 echo "---------------------------------" >> "$OUTPUT_PERCENTAGE"
 echo "REWORK %$rework_percentage" >> "$OUTPUT_PERCENTAGE"
@@ -125,7 +246,9 @@ echo "Enviando datos a la API..."
 AUTHOR=$(echo "$AUTHOR" | sed 's/\\/\\\\/g')
 REPO_URL=$(echo "$REPO_URL" | sed 's/\\/\\\\/g')
 
-# Construcción del payload GraphQL
+# ===================================================
+# Construcción del payload 
+# ===================================================
 graphql_query=$(cat <<EOF
 {
   "query": "mutation CreateReworkData(\$data: ReworkDataInput!) { createReworkData(data: \$data) { id repoUrl prNumber author } }",
@@ -136,6 +259,7 @@ graphql_query=$(cat <<EOF
       "author": "$AUTHOR",
       "prApprover": "$APPROVER",
       "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+      "createdAtDate": "$(date -u +"%Y-%m-%d")",
       "totalCommits": $total_commits,
       "periodStart": "$START_DATE",
       "periodEnd": "$END_DATE",
@@ -148,6 +272,7 @@ graphql_query=$(cat <<EOF
 EOF
 )
 
+# ===================================================
 # Mostrar el JSON para verificación
 echo "Enviando a GraphQL..."
 echo "$graphql_query"

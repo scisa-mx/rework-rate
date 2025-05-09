@@ -15,5 +15,6 @@ def convert_to_type(record: ReworkDataDB) -> ReworkDataType:
         modified_lines=record.modified_lines,
         rework_lines=record.rework_lines,
         rework_percentage=record.rework_percentage,
+        createdAtDate=record.createdAtDate,
     )
 
