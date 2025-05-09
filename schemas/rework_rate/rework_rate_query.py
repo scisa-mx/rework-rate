@@ -45,8 +45,8 @@ class Query:
         if start_date and end_date:
             query = query.filter(
                 and_(
-                    ReworkDataDB.period_start >= start_date,
-                    ReworkDataDB.period_start <= end_date
+                    ReworkDataDB.createdAtDate >= start_date,
+                    ReworkDataDB.createdAtDate <= end_date
                 )
             )
         query = query.order_by(ReworkDataDB.period_start.asc())
