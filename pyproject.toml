@@ -1,9 +1,12 @@
 [project]
 name = "scisa_benchmarks_api"
-version = "0.3.1"
+version = "0.4.0"
 description = "Api que maneja las diferentes benchmarks de los repositorios de SCISA"
 authors = [{ name = "Carlos Alberto Torres Cano", email = "carlos.torres@scisa.com.mx" }, {name="Abigail Morales Aquino", email="abigail.morales@scisa.com.mx"}]
 
 [project.urls]
 app_url = "https://rework-rate.scisa.com.mx"
 api_url = "https://api.rework-rate.scisa.com.mx/graphql"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
