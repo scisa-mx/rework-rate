@@ -1,6 +1,6 @@
-from fastapi import HTTPException
-from sqlalchemy.orm import Session
-import strawberry
+from fastapi import HTTPException # type: ignore
+from sqlalchemy.orm import Session # type: ignore
+import strawberry # type: ignore
 from schemas.rework_rate.rework_rate_types import ReworkDataType, ReworkDataInput
 from resolvers.rework import convert_to_type
 from services.rework_rate_service import ReworkService

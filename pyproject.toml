@@ -7,3 +7,6 @@ authors = [{ name = "Carlos Alberto Torres Cano", email = "carlos.torres@scisa.c
 [project.urls]
 app_url = "https://rework-rate.scisa.com.mx"
 api_url = "https://api.rework-rate.scisa.com.mx/graphql"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]

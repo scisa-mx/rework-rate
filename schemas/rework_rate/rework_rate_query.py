@@ -1,5 +1,5 @@
-from sqlalchemy.orm import Session
-import strawberry
+from sqlalchemy.orm import Session # type: ignore
+import strawberry  # type: ignore
 from services.rework_rate_service import ReworkService
 from repositories.rework_rate_repository import ReworkRepository
 from schemas.rework_rate.rework_rate_types import ReworkDataType, RepoUrlType, MeanAndMedianType, ReworkDataInput

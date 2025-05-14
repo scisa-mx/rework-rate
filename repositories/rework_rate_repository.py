@@ -1,10 +1,13 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import and_
+from sqlalchemy.orm import Session # type: ignore
+from sqlalchemy import and_ # type: ignore
 from models.rework import ReworkDataDB
 from typing import Optional
 from datetime import datetime
 
 class ReworkRepository:
+    """
+    Repositorio para manejar operaciones CRUD en la tabla de datos de rework.
+    """
     def __init__(self, db: Session):
         self.db = db
 
