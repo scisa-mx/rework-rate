@@ -12,12 +12,12 @@ load_dotenv(".env.development")
 # Obtener variables del entorno
 DB_USER = os.getenv("DB_USER", "sa")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "Scis#Passw0rd")
-DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_SERVER = os.getenv("DB_SERVER", "localhost")
 DB_PORT = os.getenv("DB_PORT", "1433")
 DB_NAME = os.getenv("DB_NAME", "rework_data")
 
 
-connection_string = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={DB_HOST},{DB_PORT};DATABASE={DB_NAME};UID={DB_USER};PWD={DB_PASSWORD}"
+connection_string = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={DB_SERVER},{DB_PORT};DATABASE={DB_NAME};UID={DB_USER};PWD={DB_PASSWORD}"
 connection_url = URL.create(
     "mssql+pyodbc",
     query={"odbc_connect": connection_string}

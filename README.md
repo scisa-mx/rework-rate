@@ -73,4 +73,4 @@ uvicorn main:app --reload
 
 Puedes visitar swagger el la siguiente liga:
 
-http://127.0.0.1:8000/docs#
+http://127.0.0.1:8000/graphql

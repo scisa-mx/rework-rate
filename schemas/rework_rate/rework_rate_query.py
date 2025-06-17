@@ -6,6 +6,7 @@ from resolvers.rework import convert_to_type
 from core.utils.formatter import extract_repo_name
 from typing import Optional
 from datetime import datetime
+from utils.dates.flatdate import remove_timezone_from_dates
 from sqlalchemy import and_
 
 @strawberry.type
@@ -42,10 +43,7 @@ class Query:
         
         query = db.query(ReworkDataDB).filter(ReworkDataDB.repo_url == repo_url)
 
-        if start_date:
-            start_date = start_date.replace(tzinfo=None)
-        if end_date:
-            end_date = end_date.replace(tzinfo=None)
+        start_date, end_date = remove_timezone_from_dates(start_date, end_date)    
 
         if start_date and end_date:
             query = query.filter(
@@ -69,17 +67,21 @@ class Query:
         db: Session = info.context["db"]
 
         query = db.query(ReworkDataDB).filter(ReworkDataDB.repo_url == repo_url)
-        
+
+
+        start_date, end_date = remove_timezone_from_dates(start_date, end_date)    
+
         # Apply date filters if provided
         if start_date and end_date:
             query = query.filter(
                 and_(
-                    ReworkDataDB.period_start >= start_date,
-                    ReworkDataDB.period_start <= end_date
+                    ReworkDataDB.createdAtDate >= start_date,
+                    ReworkDataDB.createdAtDate <= end_date
                 )
             )
         # Get all records for the specified repo_url and date range
         records = query.all()
+
         if not records:
             return MeanAndMedianType(mean=0.0, median=0.0)
         
@@ -93,5 +95,9 @@ class Query:
             median = (sorted_percentages[n // 2 - 1] + sorted_percentages[n // 2]) / 2
         else:
             median = sorted_percentages[n // 2]
+
+        # Redondear a dos decimales
+        mean = round(mean, 2)
+        median = round(median, 2)
         
         return MeanAndMedianType(mean=mean, median=median) 
