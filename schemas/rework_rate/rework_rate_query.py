@@ -1,12 +1,13 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 import strawberry
-from models.rework import ReworkDataDB
+from models.rework import ReworkDataDB, rework_data_tags
+from models.tags import TagDB
 from schemas.rework_rate.rework_rate_types import ReworkDataType, RepoUrlType, MeanAndMedianType
 from resolvers.rework import convert_to_type
 from core.utils.formatter import extract_repo_name
 from typing import Optional
 from datetime import datetime
-from sqlalchemy import and_
+from sqlalchemy import and_, func
 
 @strawberry.type
 class Query:
@@ -14,6 +15,43 @@ class Query:
     def get_rework_data(self, info) -> list[ReworkDataType]:
         db: Session = info.context["db"]
         records = db.query(ReworkDataDB).all()
+        return [convert_to_type(record) for record in records]
+
+
+    @strawberry.field
+    def get_rework_data_by_name(
+        self,
+        info,
+        repo_name: Optional[str] = None,
+        tags: Optional[list[str]] = None
+    ) -> list[ReworkDataType]:
+        db: Session = info.context["db"]
+
+        print(f"Filtering by repo_name: {repo_name}, tags: {tags}")
+        query = db.query(ReworkDataDB)
+        if (not repo_name and not tags) or (repo_name == "" and (not tags or len(tags) == 0)):
+            records = query.all()
+            return [convert_to_type(record) for record in records]
+
+        if repo_name:
+            query = query.filter(ReworkDataDB.repo_url.ilike(f"%{repo_name}%"))
+
+        if tags and len(tags) > 0:
+            subq = (
+                db.query(rework_data_tags)
+                .join(TagDB)
+                .filter(
+                    rework_data_tags.c.rework_data_id == ReworkDataDB.id,
+                    TagDB.name.in_(tags),
+                )
+                .exists()
+            )
+            query = query.filter(subq)
+
+        query = query.options(joinedload(ReworkDataDB.tags))
+
+        records = query.all()
+
         return [convert_to_type(record) for record in records]
 
     @strawberry.field
