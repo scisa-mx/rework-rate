@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List, Optional 
 import strawberry
 
 @strawberry.type
@@ -16,6 +17,7 @@ class ReworkDataType:
     rework_lines: int
     rework_percentage: float
     createdAtDate: datetime
+    tags: Optional[List[str]] = None
 
 @strawberry.input
 class ReworkDataInput:
