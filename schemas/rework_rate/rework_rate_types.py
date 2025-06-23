@@ -36,6 +36,7 @@ class ReworkDataInput:
 
 @strawberry.type
 class RepoUrlType:
+    id: int
     url: str
     name: str
 

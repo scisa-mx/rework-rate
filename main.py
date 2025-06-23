@@ -4,9 +4,21 @@ from strawberry.fastapi import GraphQLRouter
 from sqlalchemy.orm import Session
 from database import get_db, engine, Base
 
-from schemas.rework_rate.rework_rate_query import Query
-from schemas.rework_rate.rework_rate_mutation import Mutation
+from schemas.rework_rate.rework_rate_query import Query as ReworkQuery
+from schemas.rework_rate.rework_rate_mutation import Mutation as ReworkMutation
+from schemas.tags.tags_mutation import Mutation as TagsMutation
+from schemas.tags.tags_query import Query as TagsQuery
+
 from fastapi.middleware.cors import CORSMiddleware
+
+
+@strawberry.type
+class RootQuery(ReworkQuery, TagsQuery):
+    pass
+
+@strawberry.type
+class RootMutation(ReworkMutation, TagsMutation):
+    pass
 
 # Crear las tablas en la base de datos
 Base.metadata.create_all(bind=engine)
@@ -16,7 +28,7 @@ async def get_context(db: Session = Depends(get_db)):
     return {"db": db}
 
 # Crear el esquema GraphQL
-schema = strawberry.Schema(query=Query, mutation=Mutation)
+schema = strawberry.Schema(query=RootQuery, mutation=RootMutation)
 
 app = FastAPI(title="Rework Rate API con GraphQL", version="0.1.0")
 

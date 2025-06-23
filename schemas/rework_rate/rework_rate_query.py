@@ -25,11 +25,16 @@ class Query:
     @strawberry.field
     def get_all_repos(self, info) -> list[RepoUrlType]:
         db: Session = info.context["db"]
-        distinct_urls = db.query(ReworkDataDB.repo_url).distinct().all()
+        repos = db.query(ReworkDataDB).all()
         return [
-            RepoUrlType(url=url[0], name=extract_repo_name(url[0]))
-            for url in distinct_urls
+            RepoUrlType(
+                id=repo.id,
+                url=repo.repo_url,
+                name=extract_repo_name(repo.repo_url),
+            )
+            for repo in repos
         ]
+
     @strawberry.field
     def get_rework_history(
         self,
