@@ -25,7 +25,7 @@ class Query:
     @strawberry.field
     def get_rework_data_by_name(
         self, info, repo_url: Optional[str] = None, tags: Optional[list[str]] = None
-    ) -> list[ReworkDataType]:
+    ) -> list[RepoUrlType]:
         db: Session = info.context["db"]
 
         query = db.query(ReworkDataDB)
@@ -38,16 +38,14 @@ class Query:
             return [convert_to_type(record) for record in records]
 
         if repo_url:
-            print(f"Filtering by repo_url: {repo_url}")
             query = query.filter(
                 func.right(
                     ReworkDataDB.repo_url,
                     func.charindex("/", func.reverse(ReworkDataDB.repo_url)) - 1,
                 ) == repo_url
             )
-            records = query.all()
 
-        if tags and len(tags) > 0:
+        if tags and len(tags) > 0 and tags[0] != "":
             subq = (
                 db.query(rework_data_tags)
                 .join(TagDB)
@@ -58,12 +56,20 @@ class Query:
                 .exists()
             )
             query = query.filter(subq)
-
+            query = query.options(joinedload(ReworkDataDB.tags))
         
-        query = query.options(joinedload(ReworkDataDB.tags))
+        
         records = query.all()
 
-        return [convert_to_type(record) for record in records]
+        print(records)
+        return [
+            RepoUrlType(
+                id=record.id,
+                url=record.repo_url,
+                name=extract_repo_name(record.repo_url),
+            )
+            for record in records
+        ]
 
     @strawberry.field
     def get_rework_data_by_pr(self, info, pr_number: str) -> ReworkDataType:
