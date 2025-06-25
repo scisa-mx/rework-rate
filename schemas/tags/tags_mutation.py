@@ -12,33 +12,41 @@ logger = setup_logger("tags_mutations")
 @strawberry.type
 class Mutation:
     @strawberry.mutation
-    def create_tag(self, info, data: TagInput) -> TagType:
+    def update_tags(self, info, data: TagInput) -> list[TagType]:
         db: Session = info.context["db"]
-        print(data)
-        # Buscar el repositorio por id
-        repo = db.query(ReworkDataDB).filter(ReworkDataDB.id == data.rework_data_id).first()
+
+        repo = (
+            db.query(ReworkDataDB)
+            .filter(ReworkDataDB.id == data.rework_data_id)
+            .first()
+        )
         if not repo:
             raise HTTPException(status_code=404, detail="Repositorio no encontrado")
 
-        # Buscar si ya existe un tag con ese nombre
-        existing_tag = db.query(TagDB).filter(TagDB.name == data.name).first()
-        if existing_tag:
-            # Si el tag ya está asociado, no volver a agregarlo
-            if existing_tag not in repo.tags:
-                repo.tags.append(existing_tag)
+        # 1. Crear o asociar los nuevos tags
+        final_tags = []
+        for tag_name in data.names:
+            tag = db.query(TagDB).filter(TagDB.name == tag_name).first()
+
+            if not tag:
+                tag = TagDB(name=tag_name)
+                db.add(tag)
                 db.commit()
-            return TagType(id=existing_tag.id, name=existing_tag.name)
+                db.refresh(tag)
+                logger.info(f"Nuevo tag '{tag.name}' creado")
 
-        # Crear el tag
-        new_tag = TagDB(name=data.name)
-        db.add(new_tag)
+            if tag not in repo.tags:
+                repo.tags.append(tag)
+                logger.info(f"Tag '{tag.name}' asociado al repo {repo.id}")
+
+            final_tags.append(tag)
+
+        # 2. Eliminar tags que ya no están en `data.names`
+        tags_to_remove = [tag for tag in repo.tags if tag.name not in data.names]
+        for tag in tags_to_remove:
+            repo.tags.remove(tag)
+            logger.info(f"Tag '{tag.name}' eliminado del repo {repo.id}")
+
         db.commit()
-        db.refresh(new_tag)
 
-        # Asociar el tag al repositorio
-        repo.tags.append(new_tag)
-        db.commit()
-
-        logger.info(f"Etiqueta creada: {new_tag.name} y asignada al repositorio {repo.id}")
-
-        return TagType(id=str(new_tag.id), name=new_tag.name)
+        return [TagType(id=tag.id, name=tag.name) for tag in repo.tags]

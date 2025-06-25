@@ -11,6 +11,6 @@ class TagResponse:
 
 @strawberry.input
 class TagInput:
-    name: str
+    names: list[str]
     rework_data_id: int
 

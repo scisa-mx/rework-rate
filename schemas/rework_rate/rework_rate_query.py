@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session, joinedload
 import strawberry
 from models.rework import ReworkDataDB, rework_data_tags
 from models.tags import TagDB
+from schemas.tags.tags_types import TagType
 from schemas.rework_rate.rework_rate_types import (
     ReworkDataType,
     RepoUrlType,
@@ -42,7 +43,8 @@ class Query:
                 func.right(
                     ReworkDataDB.repo_url,
                     func.charindex("/", func.reverse(ReworkDataDB.repo_url)) - 1,
-                ) == repo_url
+                )
+                == repo_url
             )
 
         if tags and len(tags) > 0 and tags[0] != "":
@@ -57,8 +59,7 @@ class Query:
             )
             query = query.filter(subq)
             query = query.options(joinedload(ReworkDataDB.tags))
-        
-        
+
         records = query.all()
 
         print(records)
@@ -80,17 +81,28 @@ class Query:
         return convert_to_type(record) if record else None
 
     @strawberry.field
-    def get_all_repos(self, info) -> list[RepoUrlType]:
+    def get_repos(self, info) -> list[RepoUrlType]:
         db: Session = info.context["db"]
-        repos = db.query(ReworkDataDB).all()
+
+        # Obtener todos los repos con sus tags
+        all_repos = db.query(ReworkDataDB).options(joinedload(ReworkDataDB.tags)).all()
+
+        # Eliminar duplicados por repo_url
+        unique_by_url = {}
+        for repo in all_repos:
+            if repo.repo_url not in unique_by_url:
+                unique_by_url[repo.repo_url] = repo
+
         return [
             RepoUrlType(
                 id=repo.id,
                 url=repo.repo_url,
                 name=extract_repo_name(repo.repo_url),
+                tags=[TagType(id=tag.id, name=tag.name) for tag in repo.tags],
             )
-            for repo in repos
+            for repo in unique_by_url.values()
         ]
+
 
     @strawberry.field
     def get_rework_history(
@@ -136,8 +148,8 @@ class Query:
         if start_date and end_date:
             query = query.filter(
                 and_(
-                    ReworkDataDB.period_start >= start_date,
-                    ReworkDataDB.period_start <= end_date,
+                    ReworkDataDB.createdAtDate >= start_date,
+                    ReworkDataDB.createdAtDate <= end_date,
                 )
             )
         # Get all records for the specified repo_url and date range

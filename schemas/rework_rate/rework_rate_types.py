@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List, Optional 
+from schemas.tags.tags_types import TagType
 import strawberry
 
 @strawberry.type
@@ -39,6 +40,7 @@ class RepoUrlType:
     id: int
     url: str
     name: str
+    tags: Optional[List[TagType]] = None
 
 @strawberry.type
 class MeanAndMedianType:
