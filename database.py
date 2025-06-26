@@ -1,34 +1,52 @@
+# db.py
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from dotenv import load_dotenv
-import urllib.parse
 from sqlalchemy.engine import URL
+from dotenv import load_dotenv
+from urllib.parse import quote_plus
 import os
 
-# Cargar variables de entorno
+# Cargar variables desde .env.development
 load_dotenv(".env.development")
 
-# Obtener variables del entorno
-DB_USER = os.getenv("DB_USER", "sa")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "Scis#Passw0rd")
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = os.getenv("DB_PORT", "1433")
-DB_NAME = os.getenv("DB_NAME", "rework_data")
+# Obtener variables de entorno
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_SERVER = os.getenv("DB_SERVER")
+DB_PORT = os.getenv("DB_PORT")
+DB_NAME = os.getenv("DB_NAME")
+DB_DRIVER = os.getenv("DB_DRIVER")
 
+# Validación opcional
+if not all([DB_USER, DB_PASSWORD, DB_SERVER, DB_PORT, DB_NAME, DB_DRIVER]):
+    print("Variables de entorno requeridas:")
+    print(f"DB_USER: {DB_USER}, DB_PASSWORD: {DB_PASSWORD}, DB_HOST: {DB_SERVER}, DB_PORT: {DB_PORT}, DB_NAME: {DB_NAME}, DB_DRIVER: {DB_DRIVER}")
+    raise ValueError("Faltan variables de entorno requeridas para la conexión a la BD.")
 
-connection_string = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={DB_HOST},{DB_PORT};DATABASE={DB_NAME};UID={DB_USER};PWD={DB_PASSWORD}"
-connection_url = URL.create(
-    "mssql+pyodbc",
-    query={"odbc_connect": connection_string}
+# Crear cadena de conexión codificada
+connection_string = (
+    f"DRIVER={{{DB_DRIVER}}};"
+    f"SERVER={DB_SERVER},{DB_PORT};"
+    f"DATABASE={DB_NAME};"
+    f"UID={DB_USER};"
+    f"PWD={DB_PASSWORD}"
 )
 
-engine = create_engine(connection_url)
+# Crear URL para SQLAlchemy
+connection_url = URL.create(
+    "mssql+pyodbc",
+    query={"odbc_connect": quote_plus(connection_string)}
+)
 
+# Crear engine y sesión
+engine = create_engine(connection_url)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+# Declarar base para modelos
 Base = declarative_base()
 
+# Dependencia para obtener sesión
 def get_db():
     db = SessionLocal()
     try:

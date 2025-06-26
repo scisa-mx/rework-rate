@@ -1,4 +1,6 @@
 from datetime import datetime
+from typing import List, Optional 
+from schemas.tags.tags_types import TagType
 import strawberry
 
 @strawberry.type
@@ -16,6 +18,7 @@ class ReworkDataType:
     rework_lines: int
     rework_percentage: float
     createdAtDate: datetime
+    tags: Optional[List[str]] = None
 
 @strawberry.input
 class ReworkDataInput:
@@ -34,8 +37,10 @@ class ReworkDataInput:
 
 @strawberry.type
 class RepoUrlType:
+    id: int
     url: str
     name: str
+    tags: Optional[List[TagType]] = None
 
 @strawberry.type
 class MeanAndMedianType:

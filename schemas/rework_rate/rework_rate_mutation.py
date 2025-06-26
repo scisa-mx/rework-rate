@@ -2,7 +2,9 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 import strawberry
 from models.rework import ReworkDataDB
+from models.tags import TagDB
 from schemas.rework_rate.rework_rate_types import ReworkDataType, ReworkDataInput
+from schemas.tags.tags_types import TagType
 from resolvers.rework import convert_to_type
 
 # Importar la función setup_logger para obtener un logger específico
@@ -43,4 +45,30 @@ class Mutation:
         db.commit()
 
         logger.info(f"Registros eliminados para la URL del repositorio: {url}")
+        return None
+    
+    @strawberry.mutation
+    def remove_tag_from_repo(self, info, repo_url: str, tag_name: str) -> None:
+        db: Session = info.context["db"]
+
+        # Verificar si el tag existe
+        tag = db.query(TagDB).filter(TagDB.name == tag_name).first()
+        if not tag:
+            logger.warning(f"Tag '{tag_name}' no encontrado.")
+            raise HTTPException(status_code=404, detail=f"Tag '{tag_name}' no encontrado.")
+
+        # Verificar si existen registros con la URL del repositorio
+        exists = db.query(ReworkDataDB).filter(ReworkDataDB.repo_url == repo_url).first()
+        if not exists:
+            logger.warning(f"No se encontraron registros para la URL del repositorio: {repo_url}")
+            raise HTTPException(status_code=404, detail=f"No se encontraron registros para la URL del repositorio: {repo_url}")
+
+        # Eliminar el tag del registro
+        # db.query(rework_data_tags).filter(
+        #     rework_data_tags.c.rework_data_id == exists.id,
+        #     rework_data_tags.c.tag_id == tag.id
+        # ).delete()
+        # db.commit()
+
+        logger.info(f"Tag '{tag_name}' eliminado de la URL del repositorio: {repo_url}")
         return None
