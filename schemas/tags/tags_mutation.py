@@ -5,6 +5,7 @@ from models.tags import TagDB
 from schemas.tags.tags_types import TagType, TagInput
 from models.rework import ReworkDataDB
 from core.logger.logger_main import setup_logger
+from core.utils.colors.colors import get_next_available_color
 
 logger = setup_logger("tags_mutations")
 
@@ -15,7 +16,7 @@ class Mutation:
     def update_tags(self, info, data: TagInput) -> list[TagType]:
         db: Session = info.context["db"]
 
-        repo = (
+        repo = (    
             db.query(ReworkDataDB)
             .filter(ReworkDataDB.id == data.rework_data_id)
             .first()
@@ -29,7 +30,8 @@ class Mutation:
             tag = db.query(TagDB).filter(TagDB.name == tag_name).first()
 
             if not tag:
-                tag = TagDB(name=tag_name)
+                color = get_next_available_color(db)
+                tag = TagDB(name=tag_name, color=color)
                 db.add(tag)
                 db.commit()
                 db.refresh(tag)

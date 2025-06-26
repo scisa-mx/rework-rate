@@ -9,3 +9,4 @@ class TagDB(Base):
 
     id = Column(UNIQUEIDENTIFIER, primary_key=True, default=uuid.uuid4, nullable=False)
     name = Column(String(255), unique=True, nullable=False)
+    color = Column(String, nullable=True) 

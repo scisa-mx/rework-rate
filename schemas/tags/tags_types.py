@@ -4,6 +4,7 @@ import strawberry
 class TagType:
     id: str
     name: str
+    color: str
 
 @strawberry.type
 class TagResponse:

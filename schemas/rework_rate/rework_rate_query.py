@@ -39,12 +39,12 @@ class Query:
             return [convert_to_type(record) for record in records]
 
         if repo_url:
+            # Permitir búsqueda parcial del nombre del repo
             query = query.filter(
                 func.right(
                     ReworkDataDB.repo_url,
                     func.charindex("/", func.reverse(ReworkDataDB.repo_url)) - 1,
-                )
-                == repo_url
+                ).ilike(f"%{repo_url}%")
             )
 
         if tags and len(tags) > 0 and tags[0] != "":
@@ -68,6 +68,10 @@ class Query:
                 id=record.id,
                 url=record.repo_url,
                 name=extract_repo_name(record.repo_url),
+                tags=[
+                    TagType(id=tag.id, name=tag.name, color=tag.color)
+                    for tag in record.tags
+                ],
             )
             for record in records
         ]
@@ -93,12 +97,14 @@ class Query:
             if repo.repo_url not in unique_by_url:
                 unique_by_url[repo.repo_url] = repo
 
+
+        print(repo.tags)
         return [
             RepoUrlType(
                 id=repo.id,
                 url=repo.repo_url,
                 name=extract_repo_name(repo.repo_url),
-                tags=[TagType(id=tag.id, name=tag.name) for tag in repo.tags],
+                tags=[TagType(id=tag.id, name=tag.name, color=tag.color) for tag in repo.tags],
             )
             for repo in unique_by_url.values()
         ]

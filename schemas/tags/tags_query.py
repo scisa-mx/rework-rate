@@ -10,4 +10,4 @@ class Query:
     def get_all_tags(self, info) -> list[TagType]:
         db: Session = info.context["db"]
         records = db.query(TagDB).all()
-        return [TagType(id=str(record.id), name=record.name) for record in records]
+        return [TagType(id=str(record.id), name=record.name, color=record.color) for record in records]
