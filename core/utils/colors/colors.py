@@ -24,7 +24,6 @@ TAG_COLORS = [
     "#6366f1",  # indigo-500
     "#8b5cf6",  # violet-500
     "#a855f7",  # purple-500
-    "#  ",  # pink-500
     "#f43f5e",  # rose-500
     "#6b7280",  # gray-500 (único gris permitido)
 ]

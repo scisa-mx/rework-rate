@@ -13,6 +13,8 @@ from core.utils.formatter import extract_repo_name
 from typing import Optional
 from datetime import datetime
 from sqlalchemy import and_, func
+from repositories.rework.RepositoryRework import RepositoryRework
+from services.rework.ServiceRework import ServiceRework
 
 
 @strawberry.type
@@ -97,18 +99,19 @@ class Query:
             if repo.repo_url not in unique_by_url:
                 unique_by_url[repo.repo_url] = repo
 
-
         print(repo.tags)
         return [
             RepoUrlType(
                 id=repo.id,
                 url=repo.repo_url,
                 name=extract_repo_name(repo.repo_url),
-                tags=[TagType(id=tag.id, name=tag.name, color=tag.color) for tag in repo.tags],
+                tags=[
+                    TagType(id=tag.id, name=tag.name, color=tag.color)
+                    for tag in repo.tags
+                ],
             )
             for repo in unique_by_url.values()
         ]
-
 
     @strawberry.field
     def get_rework_history(
@@ -146,32 +149,18 @@ class Query:
         start_date: Optional[datetime] = None,
         end_date: Optional[datetime] = None,
     ) -> MeanAndMedianType:
+        
+        # Get the database session from the context
         db: Session = info.context["db"]
+        
+        # Create an instance of the repository
+        # and fetch the query for the specified repository and date range
+        repository = RepositoryRework(db=db)
+        query = repository.get_by_repo_and_dates(
+            repo_url=repo_url, start_date=start_date, end_date=end_date
+        )
 
-        query = db.query(ReworkDataDB).filter(ReworkDataDB.repo_url == repo_url)
-
-        # Apply date filters if provided
-        if start_date and end_date:
-            query = query.filter(
-                and_(
-                    ReworkDataDB.createdAtDate >= start_date,
-                    ReworkDataDB.createdAtDate <= end_date,
-                )
-            )
-        # Get all records for the specified repo_url and date range
-        records = query.all()
-        if not records:
-            return MeanAndMedianType(mean=0.0, median=0.0)
-
-        # Calculate mean and median of rework percentages
-        rework_percentages = [record.rework_percentage for record in records]
-        mean = sum(rework_percentages) / len(rework_percentages)
-
-        sorted_percentages = sorted(rework_percentages)
-        n = len(sorted_percentages)
-        if n % 2 == 0:
-            median = (sorted_percentages[n // 2 - 1] + sorted_percentages[n // 2]) / 2
-        else:
-            median = sorted_percentages[n // 2]
-
-        return MeanAndMedianType(mean=mean, median=median)
+        # Create an instance of the service and calculate mean and median
+        service = ServiceRework(RepositoryRework)
+        res = service.get_mean_and_median(query)
+        return res

@@ -1,5 +1,25 @@
 # SCISA Benchmarks API
 
+## 0.4.0 - 27/06/25
+### Resumen
+Se agrega la logica de negocio y la logica del repositorio por separado.
+
+### Fixed
+//
+
+### Added
+    - Se añaden clases para poder separar la logica de la api mediante Repository Pattern
+
+### Changed
+//
+### Deprecated
+//
+### Removed
+//
+### Security
+//
+
+
 ## 0.3.1 - 09/05/2025
 
 ### Resumen
