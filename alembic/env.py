@@ -14,6 +14,7 @@ from database import Base  # Ajusta esto según tu estructura real
 
 from models.rework import ReworkDataDB 
 from models.tags import TagDB
+from models.repository import RepositoryEntity
 
 # Config Alembic
 config = context.config
@@ -57,3 +58,5 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+
+print("SQLALCHEMY URL:", settings.sqlalchemy_url)
