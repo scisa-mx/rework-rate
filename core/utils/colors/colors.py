@@ -37,3 +37,6 @@ def get_next_available_color(db: Session) -> str:
             return color
     # Si todos están en uso, repite el ciclo
     return TAG_COLORS[len(used_colors) % len(TAG_COLORS)]
+
+def validate_color(color:str) -> str:
+    pass

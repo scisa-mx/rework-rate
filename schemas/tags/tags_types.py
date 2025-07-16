@@ -21,7 +21,6 @@ class TagInput:
 @strawberry.input
 class TagInputCreate:
     name: str
-    color: str = None  
 
 # Input para actualizar un tag individual
 @strawberry.input

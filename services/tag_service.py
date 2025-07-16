@@ -22,12 +22,11 @@ class TagService:
             raise HTTPException(status_code=404, detail="Tag no encontrado")
         return tag
 
-    def create_tag(self, name: str, color: Optional[str] = None) -> TagDB:
+    def create_tag(self, name: str) -> TagDB:
         existing = self.repo.get_by_name(name)
         if existing:
             raise HTTPException(status_code=400, detail="Tag con ese nombre ya existe")
-        if not color:
-            color = get_next_available_color(self.db)
+        color = get_next_available_color(self.db)
         return self.repo.create(name, color)
 
     def update_tag(self, tag_id: str, name: Optional[str] = None, color: Optional[str] = None) -> TagDB:

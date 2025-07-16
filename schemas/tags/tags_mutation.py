@@ -13,7 +13,7 @@ class TagMutation:
     def create_tag(self, info: Info, data: TagInputCreate) -> TagType:
         db: Session = info.context["db"]
         service = TagService(db)
-        tag = service.create_tag(data.name, data.color)
+        tag = service.create_tag(data.name)  # solo el nombre
         return TagType(id=str(tag.id), name=tag.name, color=tag.color)
 
     @strawberry.mutation
