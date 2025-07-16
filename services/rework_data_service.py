@@ -4,13 +4,14 @@ from models.rework import ReworkDataDB
 from sqlalchemy.orm import Session
 from typing import Optional, List
 from datetime import datetime
+from schemas.rework_rate.rework_rate_types import ReworkRateFilters
 
 class ReworkDataService:
     def __init__(self, session: Session, repo: ReworkDataRepository):
         self.session = session
         self.repo = repo
 
-    def get_rework_records(self, filters: Optional[dict] = None) -> List[ReworkDataDB]:
+    def get_rework_records(self, filters: ReworkRateFilters = None) -> List[ReworkDataDB]:
         return self.repo.get_rework_records(self.session, filters)
 
     def get_rework_records_by_repository(

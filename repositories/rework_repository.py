@@ -4,20 +4,22 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, and_
 from typing import Optional
 from datetime import datetime
+from schemas.rework_rate.rework_rate_types import ReworkRateFilters
 
 class ReworkDataRepository(Repository[ReworkDataDB]):
 
-    def get_rework_records(self, db: Session, filters: Optional[dict] = None) -> list[ReworkDataDB]:
+    def get_rework_records(self, db: Session, filters: ReworkRateFilters
+ = None) -> list[ReworkDataDB]:
         query = select(self.model)
         conditions = []
 
         if filters:
-            if "repo_url" in filters and filters["repo_url"]:
-                conditions.append(self.model.repo_url == filters["repo_url"])
-            if "start_date" in filters and filters["start_date"]:
-                conditions.append(self.model.createdAtDate >= filters["start_date"])
-            if "end_date" in filters and filters["end_date"]:
-                conditions.append(self.model.createdAtDate <= filters["end_date"])
+            if filters.repo_url:
+                conditions.append(self.model.repo_url == filters.repo_url)
+            if filters.start_date:
+                conditions.append(self.model.createdAtDate >= filters.start_date)
+            if filters.end_date:
+                conditions.append(self.model.createdAtDate <= filters.end_date)
 
         if conditions:
             query = query.where(and_(*conditions))

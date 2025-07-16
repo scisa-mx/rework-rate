@@ -7,6 +7,7 @@ from schemas.rework_rate.rework_rate_types import ReworkDataType, MeanAndMedianT
 from services.rework_data_service import ReworkDataService
 from repositories.rework_repository import ReworkDataRepository
 from models.rework import ReworkDataDB
+from schemas.rework_rate.rework_rate_types import ReworkRateFilters
 
 
 
@@ -23,7 +24,7 @@ class Query:
     ) -> List[ReworkDataType]:
         db: Session = info.context["db"]
         service = ReworkDataService(db, ReworkDataRepository(ReworkDataDB, db))
-        filters = {"repo_url": repo_url, "start_date": start_date, "end_date": end_date}
+        filters = ReworkRateFilters(repo_url=repo_url, start_date=start_date, end_date=end_date)
         records = service.get_rework_records(filters)
         return records
 
