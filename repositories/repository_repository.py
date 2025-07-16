@@ -2,8 +2,8 @@ from models.repository import RepositoryEntity
 from repositories.base_repository import Repository
 from sqlalchemy import select, delete, and_
 from sqlalchemy.orm import Session
-from schemas.repository.repository_input import RepositoryFilterInput
-
+from schemas.repository.repository_input import RepositoryFilterInput, RepositoryUpdateInput
+from uuid import UUID
 
 class RepositoryRepository(Repository[RepositoryEntity]):
 
@@ -29,10 +29,11 @@ class RepositoryRepository(Repository[RepositoryEntity]):
         """
         Actualiza un repositorio existente en la base de datos.
         """
-        db.merge(repository)
+        
+        merged = db.merge(repository)
         db.commit()
-        db.refresh(repository)
-        return repository
+        db.refresh(merged)
+        return merged
     
     def get_repository_by_id(
         self, db: Session, repository_id: str
@@ -40,6 +41,7 @@ class RepositoryRepository(Repository[RepositoryEntity]):
         """
         Obtiene un repositorio por su ID.
         """
+        print(f"Fetching repository with ID: {repository_id}")
         query = select(self.model).where(self.model.id == repository_id)
         result = db.execute(query)
         return result.scalar_one_or_none()

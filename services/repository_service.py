@@ -3,7 +3,9 @@ from fastapi import HTTPException, status
 
 from repositories.repository_repository import RepositoryRepository
 from models.repository import RepositoryEntity
+from schemas.repository.repository_mutation import RepositoryCreateInput
 from sqlalchemy.orm import Session
+from schemas.repository.repository_input import RepositoryUpdateInput
 
 from schemas.repository.repository_input import RepositoryFilterInput
 
@@ -38,11 +40,33 @@ class RepositoryService:
 
         return repository
 
-    def update_repository(self, repository: RepositoryEntity) -> RepositoryEntity:
+    def update_repository(self, repository: RepositoryUpdateInput) -> RepositoryEntity:
         """
         Actualiza un repositorio existente en la base de datos.
         """
-        return self.repository.update_repository(self.session, repository)
+        existing_repository = self.repository.get_repository_by_id(self.session, repository.id)
+
+        if not existing_repository:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Repository with ID {repository.id} not found."
+            )
+        
+        print(f"Updating repository with ID: {existing_repository}")
+
+        # actializar los campos del repositorio existente
+        for field, value in repository.__dict__.items():
+            if value is not None and field != "id":
+                setattr(existing_repository, field, value)
+
+        # Crear un nuevo objeto limpio con los datos ya actualizados
+        updated_repository = RepositoryEntity(
+            id=existing_repository.id,
+            name=existing_repository.name,
+            repo_url=existing_repository.repo_url,
+            description=existing_repository.description
+        )
+        return self.repository.update_repository(self.session, updated_repository)
 
     def delete_repository(self, id: str) -> None:
         """
@@ -50,14 +74,18 @@ class RepositoryService:
         """
         self.repository.delete_repository(self.session, id)
 
-    def create_repository(self, repository: RepositoryEntity, data) -> RepositoryEntity:
+    def create_repository(self, repository: RepositoryCreateInput) -> RepositoryEntity:
         """
         Crea un nuevo repositorio en la base de datos.
         """
 
-        # Buscar con la url del record si existe un repositorio con esa URL, si no existe, lo crea, si existe, no hace nada
+        new_repository = RepositoryEntity(
+            name=repository.name,
+            repo_url=repository.repo_url,
+            description=repository.description
+        )        
 
-        self.session.add(repository)
+        self.session.add(new_repository)
         self.session.commit()
-        self.session.refresh(repository)
-        return repository
+        self.session.refresh(new_repository)
+        return new_repository

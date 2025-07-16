@@ -1,6 +1,5 @@
 import strawberry
 from typing import Optional
-import uuid
 
 @strawberry.input
 class RepositoryCreateInput:
@@ -10,7 +9,7 @@ class RepositoryCreateInput:
 
 @strawberry.input
 class RepositoryUpdateInput:
-    id: uuid.UUID  # Para identificar qué repo actualizar
+    id: str  
     name: Optional[str] = None
     repo_url: Optional[str] = None
     description: Optional[str] = None
