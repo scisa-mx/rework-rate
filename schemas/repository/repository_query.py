@@ -7,26 +7,33 @@ from models.repository import RepositoryEntity
 from schemas.repository.repository_type import RepositoryType
 from schemas.tags.tags_types import TagType
 
+from repositories.repository_repository import RepositoryRepository
+from services.repository_service import RepositoryService
+from schemas.repository.repository_input import RepositoryFilterInput
+
 @strawberry.type
 class RepositoryQuery:
+    @strawberry.field
+    def get_all_repositories(self, info, filters: Optional[RepositoryFilterInput]) -> List[RepositoryType]:
+        db: Session = info.context["db"]
+        
+        repo = RepositoryRepository(RepositoryEntity, db)
+        service = RepositoryService(db, repo)
+
+        res = service.get_repositories(filters)
+
+        return res
     
     @strawberry.field
-    def get_all_repositories(self, info) -> List[RepositoryType]:
+    def get_repository_by_id(self, info: Info, id: uuid.UUID) -> Optional[RepositoryType]:
         db: Session = info.context["db"]
-        repos = db.query(RepositoryEntity).all()
 
-        return [
-            RepositoryType(
-                id=repo.id,
-                name=repo.name,
-                repo_url=repo.repo_url,
-                description=repo.description,
-            )
-            for repo in repos
-        ]
+        repo = RepositoryRepository(RepositoryEntity, db)
+        service = RepositoryService(db, repo)
 
-@strawberry.type
-class RepositoryQuery:
+        repository = service.get_repository_by_id(id)
+
+        return repository
 
     @strawberry.field
     def get_repository_by_id_or_name(

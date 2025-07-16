@@ -23,7 +23,7 @@ class Mutation:
         db.add(new_record)
         db.commit()
         db.refresh(new_record)
-        
+
         data_dict = {k: v for k, v in new_record.__dict__.items() if not k.startswith('_')}
         logger.info(f"Registro creado: {data_dict}")
         

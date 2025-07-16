@@ -14,3 +14,8 @@ class RepositoryUpdateInput:
     name: Optional[str] = None
     repo_url: Optional[str] = None
     description: Optional[str] = None
+
+@strawberry.input
+class RepositoryFilterInput:
+    name: Optional[str] = None
+    description: Optional[str] = None
