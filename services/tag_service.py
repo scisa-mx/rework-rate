@@ -1,38 +1,43 @@
 from sqlalchemy.orm import Session
-from typing import List
-from models.rework import ReworkDataDB
-from repositories.tag_repository import TagRepository
+from typing import List, Optional
 from models.tags import TagDB
-from core.utils.colors.colors import get_next_available_color
+from repositories.tag_repository import TagRepository
 from fastapi import HTTPException
+from core.utils.colors.colors import get_next_available_color  # para crear tags nuevos
+from schemas.tags.tags_types import TagFilter
 
 class TagService:
     def __init__(self, db: Session):
         self.db = db
         self.repo = TagRepository(db)
 
-    def update_tags_for_rework(self, rework_id: int, tag_names: List[str]) -> List[TagDB]:
-        rework = self.db.query(ReworkDataDB).filter_by(id=rework_id).first()
-        if not rework:
-            raise HTTPException(status_code=404, detail="Repositorio no encontrado")
-
-        current_tags = []
-        for name in tag_names:
-            tag = self.repo.get_by_name(name)
-            if not tag:
-                color = get_next_available_color(self.db)
-                tag = self.repo.create(name, color)
-            if tag not in rework.tags:
-                rework.tags.append(tag)
-            current_tags.append(tag)
-
-        # Eliminar tags no incluidos
-        for tag in list(rework.tags):
-            if tag.name not in tag_names:
-                rework.tags.remove(tag)
-
-        self.db.commit()
-        return rework.tags
-
-    def get_all_tags(self) -> List[TagDB]:
+    def get_all_tags(self, filters: Optional[TagFilter] = None) -> List[TagDB]:
+        if filters:
+            return self.repo.get_by_filter(filters)
         return self.repo.get_all()
+
+    def get_tag_by_id(self, tag_id: str) -> TagDB:
+        tag = self.repo.get_by_id(tag_id)
+        if not tag:
+            raise HTTPException(status_code=404, detail="Tag no encontrado")
+        return tag
+
+    def create_tag(self, name: str, color: Optional[str] = None) -> TagDB:
+        existing = self.repo.get_by_name(name)
+        if existing:
+            raise HTTPException(status_code=400, detail="Tag con ese nombre ya existe")
+        if not color:
+            color = get_next_available_color(self.db)
+        return self.repo.create(name, color)
+
+    def update_tag(self, tag_id: str, name: Optional[str] = None, color: Optional[str] = None) -> TagDB:
+        tag = self.get_tag_by_id(tag_id)
+        if name:
+            existing = self.repo.get_by_name(name)
+            if existing and existing.id != tag_id:
+                raise HTTPException(status_code=400, detail="Otro tag con ese nombre ya existe")
+        return self.repo.update(tag, name, color)
+
+    def delete_tag(self, tag_id: str) -> None:
+        tag = self.get_tag_by_id(tag_id)
+        self.repo.delete(tag)
