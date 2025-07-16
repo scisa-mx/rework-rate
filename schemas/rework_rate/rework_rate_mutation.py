@@ -4,7 +4,6 @@ import strawberry
 from models.rework import ReworkDataDB
 from models.tags import TagDB
 from schemas.rework_rate.rework_rate_types import ReworkDataType, ReworkDataInput
-from schemas.tags.tags_types import TagType
 from resolvers.rework import convert_to_type
 
 # Importar la función setup_logger para obtener un logger específico
