@@ -8,7 +8,7 @@ import uuid
 
 from repositories.repository_repository import RepositoryRepository
 from services.repository_service import RepositoryService
-
+from schemas.repository.repository_input import AssingTagsInput
 
 @strawberry.type
 class RepositoryMutation:
@@ -46,3 +46,14 @@ class RepositoryMutation:
         service.delete_repository(id)
 
         return True
+    
+    @strawberry.mutation
+    def assign_tags_to_repository(self, info, data: AssingTagsInput) -> RepositoryType:
+        db: Session = info.context["db"]
+
+        repo = RepositoryRepository(RepositoryEntity, db)
+        service = RepositoryService(db, repo)
+
+        updated_repository = service.assing_tags_to_repository(data)
+
+        return updated_repository

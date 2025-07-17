@@ -9,6 +9,7 @@ from schemas.repository.repository_input import RepositoryCreateInput
 from models.repository import RepositoryEntity
 from services.repository_service import RepositoryService
 from repositories.repository_repository import RepositoryRepository
+from core.utils.formatter import extract_repo_name
 
 class ReworkDataService:
     def __init__(self, session: Session, repo: ReworkDataRepository):
@@ -42,8 +43,9 @@ class ReworkDataService:
             # Si el respository no existe, se crea uno nuevo
             repo = RepositoryRepository(RepositoryEntity, self.session)
             service = RepositoryService(self.session, repo)
+            print(f"Creating new repository for name: {extract_repo_name(data.repo_url)}")
             new_repo_data = RepositoryCreateInput(
-                name=data.repo_url,
+                name=extract_repo_name(data.repo_url),
                 description=None,
                 repo_url=data.repo_url
             )

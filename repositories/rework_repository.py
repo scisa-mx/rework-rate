@@ -32,7 +32,8 @@ class ReworkDataRepository(Repository[ReworkDataDB]):
     ) -> Optional[ReworkDataDB]:
         query = select(self.model).where(self.model.repo_url == repo_url)
         result = db.execute(query)
-        return result.scalar_one_or_none()
+        # Si se obtiene un solo resultado, se devuelve el primer elemento
+        return result.scalar()
 
     def get_rework_records_by_repository(
         self,

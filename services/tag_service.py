@@ -53,3 +53,10 @@ class TagService:
     def delete_tag(self, tag_id: str) -> None:
         tag = self.get_tag_by_id(tag_id)
         self.repo.delete(tag)
+
+
+    def match_tag_name(self, tag_name: str) -> Optional[TagDB]:
+        """
+        Busca un tag por su nombre.
+        """
+        return self.repo.get_by_name(tag_name)

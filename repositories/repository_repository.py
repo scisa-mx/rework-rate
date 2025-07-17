@@ -20,6 +20,13 @@ class RepositoryRepository(Repository[RepositoryEntity]):
         if conditions:
             query = query.where(and_(*conditions))
 
+        ## Si tiene tags, filtrar por ellos
+        if filters.tags:
+            tag_conditions = []
+            for tag in filters.tags:
+                tag_conditions.append(self.model.tags.any(name=tag))
+            query = query.where(and_(*tag_conditions))
+
         result = db.execute(query)
         return result.scalars().all()
 

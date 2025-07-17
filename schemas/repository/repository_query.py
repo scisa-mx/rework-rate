@@ -21,7 +21,7 @@ class RepositoryQuery:
         service = RepositoryService(db, repo)
 
         res = service.get_repositories(filters)
-
+        
         return res
     
     @strawberry.field

@@ -18,3 +18,9 @@ class RepositoryUpdateInput:
 class RepositoryFilterInput:
     name: Optional[str] = None
     description: Optional[str] = None
+    tags: Optional[list[str]] = None
+
+@strawberry.input
+class AssingTagsInput:
+    repository_id: str
+    tag_names: list[str]

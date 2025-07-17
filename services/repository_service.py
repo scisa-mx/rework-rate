@@ -7,7 +7,9 @@ from schemas.repository.repository_input import RepositoryCreateInput
 from sqlalchemy.orm import Session
 from schemas.repository.repository_input import RepositoryUpdateInput
 
-from schemas.repository.repository_input import RepositoryFilterInput
+from schemas.repository.repository_input import RepositoryFilterInput, AssingTagsInput
+from schemas.repository.repository_type import RepositoryType
+from services.tag_service import TagService
 
 class RepositoryService:
     """
@@ -19,7 +21,7 @@ class RepositoryService:
         self.session = session
         self.repository = repo
 
-    def get_repositories(self, filters: RepositoryFilterInput) -> list[RepositoryEntity]:
+    def get_repositories(self, filters: RepositoryFilterInput) -> list[RepositoryType]:
         """
         Obtiene todos los repositorios de la base de datos.
         """        
@@ -88,3 +90,34 @@ class RepositoryService:
         self.session.commit()
         self.session.refresh(new_repository)
         return new_repository
+    
+    def assing_tags_to_repository(self, data: AssingTagsInput) -> RepositoryEntity:
+        """
+        Asigna etiquetas a un repositorio.
+        """
+        repo = self.repository.get_repository_by_id(self.session, data.repository_id)
+        if not repo:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Repository with ID {data.repository_id} not found."
+            )
+        
+        service = TagService(self.session)
+        
+        final_tags = []
+        
+        for name in data.tag_names:
+            # Buscar el tag por nombre
+            tag = service.match_tag_name(name)
+            if not tag:
+                # Si no existe, crear uno nuevo
+                tag = service.create_tag(name)
+            # Agregar el tag a la lista final
+            if tag not in final_tags:
+                final_tags.append(tag)
+
+        # Asignar los tags al repositorio
+        repo.tags = final_tags
+        repository = self.repository.update_repository(self.session, repo)
+
+        return repository
