@@ -1,7 +1,5 @@
 import strawberry
 from sqlalchemy.orm import Session
-from database import get_db
-from fastapi import Depends
 
 from models.repository import RepositoryEntity
 from schemas.repository.repository_type import RepositoryType
@@ -14,7 +12,6 @@ from services.repository_service import RepositoryService
 
 @strawberry.type
 class RepositoryMutation:
-
     @strawberry.mutation
     def create_repository(self, info, input: RepositoryCreateInput) -> RepositoryType:
         db: Session = info.context["db"]

@@ -3,7 +3,7 @@ from fastapi import HTTPException, status
 
 from repositories.repository_repository import RepositoryRepository
 from models.repository import RepositoryEntity
-from schemas.repository.repository_mutation import RepositoryCreateInput
+from schemas.repository.repository_input import RepositoryCreateInput
 from sqlalchemy.orm import Session
 from schemas.repository.repository_input import RepositoryUpdateInput
 
@@ -52,7 +52,6 @@ class RepositoryService:
                 detail=f"Repository with ID {repository.id} not found."
             )
         
-        print(f"Updating repository with ID: {existing_repository}")
 
         # actializar los campos del repositorio existente
         for field, value in repository.__dict__.items():

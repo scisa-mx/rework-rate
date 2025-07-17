@@ -26,6 +26,13 @@ class ReworkDataRepository(Repository[ReworkDataDB]):
 
         result = db.execute(query)
         return result.scalars().all()
+    
+    def get_rework_repository_by_url(
+        self, db: Session, repo_url: str
+    ) -> Optional[ReworkDataDB]:
+        query = select(self.model).where(self.model.repo_url == repo_url)
+        result = db.execute(query)
+        return result.scalar_one_or_none()
 
     def get_rework_records_by_repository(
         self,
@@ -52,3 +59,10 @@ class ReworkDataRepository(Repository[ReworkDataDB]):
 
         result = db.execute(query)
         return result.scalars().all()
+
+    
+    def create_rework_data_record(self, db: Session, data: ReworkDataDB) -> ReworkDataDB:
+        db.add(data)
+        db.commit()
+        db.refresh(data)
+        return data

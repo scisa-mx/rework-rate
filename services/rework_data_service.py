@@ -4,7 +4,11 @@ from models.rework import ReworkDataDB
 from sqlalchemy.orm import Session
 from typing import Optional, List
 from datetime import datetime
-from schemas.rework_rate.rework_rate_types import ReworkRateFilters
+from schemas.rework_rate.rework_rate_types import ReworkRateFilters, ReworkDataInput
+from schemas.repository.repository_input import RepositoryCreateInput
+from models.repository import RepositoryEntity
+from services.repository_service import RepositoryService
+from repositories.repository_repository import RepositoryRepository
 
 class ReworkDataService:
     def __init__(self, session: Session, repo: ReworkDataRepository):
@@ -24,12 +28,31 @@ class ReworkDataService:
             self.session, repository, start_date, end_date
         )
 
-    def create_rework_data(self, data: dict) -> ReworkDataDB:
-        new_record = ReworkDataDB(**data)
-        self.session.add(new_record)
-        self.session.commit()
-        self.session.refresh(new_record)
-        return new_record
+    def create_rework_data(self, data: ReworkDataInput) -> ReworkDataDB:
+        # Antes de crear el registro hay que verificar si el repositorio ya existe
+        existing_record = self.repo.get_rework_repository_by_url(self.session, data.repo_url)
+
+        if existing_record:
+            # Si el repositorio ya existe, se añade un registro de rework
+            # Se crea un ReworkDataDB a partir de los datos proporcionados
+            # ReworkDataDB(**data_dict)
+            record = self.repo.create_rework_data_record(self.session, ReworkDataDB(**data.__dict__))
+            return record
+        else:
+            # Si el respository no existe, se crea uno nuevo
+            repo = RepositoryRepository(RepositoryEntity, self.session)
+            service = RepositoryService(self.session, repo)
+            new_repo_data = RepositoryCreateInput(
+                name=data.repo_url,
+                description=None,
+                repo_url=data.repo_url
+            )
+            service.create_repository(new_repo_data)
+            # Ahora se crea el registro de rework asociado al nuevo repositorio
+            record = self.repo.create_rework_data_record(self.session, ReworkDataDB(**data.__dict__))
+            return record
+            
+
 
     def delete_rework_data_by_repo_url(self, repo_url: str) -> None:
         exists = self.session.query(ReworkDataDB).filter(ReworkDataDB.repo_url == repo_url).first()

@@ -8,16 +8,13 @@ from services.rework_data_service import ReworkDataService
 from repositories.rework_repository import ReworkDataRepository
 from resolvers.rework import convert_to_type
 
-
 @strawberry.type
 class Mutation:
     @strawberry.mutation
     def create_rework_data(self, info, data: ReworkDataInput) -> ReworkDataType:
         db: Session = info.context["db"]
-        new_record = ReworkDataDB(**data.__dict__)
-        db.add(new_record)
-        db.commit()
-        db.refresh(new_record)
+        service = ReworkDataService(db, ReworkDataRepository(ReworkDataDB, db))
+        new_record = service.create_rework_data(data)
 
         return convert_to_type(new_record)
 
