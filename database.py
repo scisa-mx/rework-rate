@@ -29,6 +29,7 @@ connection_string = (
     f"DATABASE={DB_NAME};"
     f"UID={DB_USER};"
     f"PWD={DB_PASSWORD}"
+    "TrustServerCertificate=yes;"
 )
 
 # Crear URL para SQLAlchemy
