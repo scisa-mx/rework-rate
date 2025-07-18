@@ -5,7 +5,6 @@ from typing import List, Optional
 from strawberry.types import Info
 from models.repository import RepositoryEntity
 from schemas.repository.repository_type import RepositoryType
-from schemas.tags.tags_types import TagType
 
 from repositories.repository_repository import RepositoryRepository
 from services.repository_service import RepositoryService
@@ -16,7 +15,6 @@ class RepositoryQuery:
     @strawberry.field
     def get_all_repositories(self, info, filters: Optional[RepositoryFilterInput]) -> List[RepositoryType]:
         db: Session = info.context["db"]
-        
         repo = RepositoryRepository(RepositoryEntity, db)
         service = RepositoryService(db, repo)
 
