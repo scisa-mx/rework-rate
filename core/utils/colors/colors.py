@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
 from models.tags import TagDB
+import re
+from fastapi import HTTPException
 
 TAG_COLORS = [
     # Royal Purple
@@ -37,3 +39,9 @@ def get_next_available_color(db: Session) -> str:
             return color
     # Si todos están en uso, repite el ciclo
     return TAG_COLORS[len(used_colors) % len(TAG_COLORS)]
+
+def validate_color(color: str) -> str:
+    color = color.strip()
+    if re.fullmatch(r"#([0-9a-fA-F]{6})", color):
+        return color.lower()
+    raise ValueError("Color inválido. Debe ser un color hexadecimal válido, por ejemplo '#22c55e'.")

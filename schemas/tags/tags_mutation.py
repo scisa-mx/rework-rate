@@ -1,54 +1,31 @@
-from fastapi import HTTPException
-from sqlalchemy.orm import Session
 import strawberry
-from models.tags import TagDB
-from schemas.tags.tags_types import TagType, TagInput
-from models.rework import ReworkDataDB
-from core.logger.logger_main import setup_logger
-from core.utils.colors.colors import get_next_available_color
-
-logger = setup_logger("tags_mutations")
+from sqlalchemy.orm import Session
+from strawberry.types import Info
+from fastapi import HTTPException
+from services.tag_service import TagService
+from schemas.tags.tags_types import TagType, TagInputCreate, TagInputUpdate
 
 
 @strawberry.type
-class Mutation:
+class TagMutation:
+
     @strawberry.mutation
-    def update_tags(self, info, data: TagInput) -> list[TagType]:
+    def create_tag(self, info: Info, data: TagInputCreate) -> TagType:
         db: Session = info.context["db"]
+        service = TagService(db)
+        tag = service.create_tag(data.name)  # solo el nombre
+        return TagType(id=str(tag.id), name=tag.name, color=tag.color)
 
-        repo = (    
-            db.query(ReworkDataDB)
-            .filter(ReworkDataDB.id == data.rework_data_id)
-            .first()
-        )
-        if not repo:
-            raise HTTPException(status_code=404, detail="Repositorio no encontrado")
+    @strawberry.mutation
+    def update_tag(self, info: Info, data: TagInputUpdate) -> TagType:
+        db: Session = info.context["db"]
+        service = TagService(db)
+        tag = service.update_tag(data.id, data.name, data.color)
+        return TagType(id=str(tag.id), name=tag.name, color=tag.color)
 
-        # 1. Crear o asociar los nuevos tags
-        final_tags = []
-        for tag_name in data.names:
-            tag = db.query(TagDB).filter(TagDB.name == tag_name).first()
-
-            if not tag:
-                color = get_next_available_color(db)
-                tag = TagDB(name=tag_name, color=color)
-                db.add(tag)
-                db.commit()
-                db.refresh(tag)
-                logger.info(f"Nuevo tag '{tag.name}' creado")
-
-            if tag not in repo.tags:
-                repo.tags.append(tag)
-                logger.info(f"Tag '{tag.name}' asociado al repo {repo.id}")
-
-            final_tags.append(tag)
-
-        # 2. Eliminar tags que ya no están en `data.names`
-        tags_to_remove = [tag for tag in repo.tags if tag.name not in data.names]
-        for tag in tags_to_remove:
-            repo.tags.remove(tag)
-            logger.info(f"Tag '{tag.name}' eliminado del repo {repo.id}")
-
-        db.commit()
-
-        return [TagType(id=tag.id, name=tag.name) for tag in repo.tags]
+    @strawberry.mutation
+    def delete_tag(self, info: Info, tag_id: str) -> bool:
+        db: Session = info.context["db"]
+        service = TagService(db)
+        service.delete_tag(tag_id)
+        return True

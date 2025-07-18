@@ -1,7 +1,12 @@
+from typing import Optional
 from models.rework import ReworkDataDB
 from schemas.rework_rate.rework_rate_types import ReworkDataType
 
 def convert_to_type(record: ReworkDataDB) -> ReworkDataType:
+    tags: Optional[list[str]] = None
+    if hasattr(record, "tags") and record.tags is not None:
+        tags = [tag.name for tag in record.tags]
+    
     return ReworkDataType(
         id=record.id,
         repo_url=record.repo_url,
@@ -16,5 +21,5 @@ def convert_to_type(record: ReworkDataDB) -> ReworkDataType:
         rework_lines=record.rework_lines,
         rework_percentage=record.rework_percentage,
         createdAtDate=record.createdAtDate,
+        tags=tags
     )
-

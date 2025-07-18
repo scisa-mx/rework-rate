@@ -29,4 +29,6 @@ class ReworkDataDB(Base):
     rework_percentage = Column(Float)
     createdAtDate = Column(Date)
     tags = relationship("TagDB", secondary=rework_data_tags, backref="reworks")
-
+    repository_id = Column(UNIQUEIDENTIFIER, ForeignKey("repositories.id"))
+    repository = relationship("RepositoryEntity", back_populates="rework_data")
+    

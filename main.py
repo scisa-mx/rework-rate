@@ -6,18 +6,19 @@ from database import get_db, engine, Base
 
 from schemas.rework_rate.rework_rate_query import Query as ReworkQuery
 from schemas.rework_rate.rework_rate_mutation import Mutation as ReworkMutation
-from schemas.tags.tags_mutation import Mutation as TagsMutation
-from schemas.tags.tags_query import Query as TagsQuery
-
+from schemas.tags.tags_mutation import TagMutation as TagsMutation
+from schemas.tags.tags_query import TagQuery as TagsQuery
+from schemas.repository.repository_mutation import RepositoryMutation
+from schemas.repository.repository_query import RepositoryQuery
 from fastapi.middleware.cors import CORSMiddleware
 
 
 @strawberry.type
-class RootQuery(ReworkQuery, TagsQuery):
+class RootQuery(ReworkQuery, TagsQuery, RepositoryQuery):
     pass
 
 @strawberry.type
-class RootMutation(ReworkMutation, TagsMutation):
+class RootMutation(ReworkMutation, TagsMutation, RepositoryMutation):
     pass
 
 # Crear las tablas en la base de datos

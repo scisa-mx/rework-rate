@@ -1,5 +1,22 @@
 # SCISA Benchmarks API
 
+## 0.4.0 - 18/07/2025
+### Resumen
+Se mejora la API para manejar mejor los repositorios y se agrega un nuevo campo para el historial de rework. 
+
+### Fixed
+- [] Se corrige el manejo de errores al buscar repositorios por ID.
+- [] Se arregla el formato de las fechas en las respuestas de la API.
+
+### Added
+- [] Se agrega un nuevo campo `createdAtDate` en el historial de re
+work para distinguir entre el lapso del rework y la fecha de creación del reporte.
+
+### Changed
+- [] Se mejora la documentación de la API para mayor claridad en el uso de los endpoints.
+
+
+
 ## 0.3.1 - 09/05/2025
 
 ### Resumen

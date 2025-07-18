@@ -20,8 +20,6 @@ DB_DRIVER = os.getenv("DB_DRIVER")
 
 # Validación opcional
 if not all([DB_USER, DB_PASSWORD, DB_SERVER, DB_PORT, DB_NAME, DB_DRIVER]):
-    print("Variables de entorno requeridas:")
-    print(f"DB_USER: {DB_USER}, DB_PASSWORD: {DB_PASSWORD}, DB_HOST: {DB_SERVER}, DB_PORT: {DB_PORT}, DB_NAME: {DB_NAME}, DB_DRIVER: {DB_DRIVER}")
     raise ValueError("Faltan variables de entorno requeridas para la conexión a la BD.")
 
 # Crear cadena de conexión codificada

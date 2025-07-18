@@ -1,13 +1,17 @@
-from sqlalchemy.orm import Session
 import strawberry
-from models.tags import TagDB 
+from sqlalchemy.orm import Session
+from services.tag_service import TagService
 from schemas.tags.tags_types import TagType
-
+from schemas.tags.tags_types import TagFilter
+from typing import Optional, List
 
 @strawberry.type
-class Query:
+class TagQuery:
     @strawberry.field
-    def get_all_tags(self, info) -> list[TagType]:
+    def get_all_tags(self, info, filters: Optional[TagFilter] = None) -> List[TagType]:
         db: Session = info.context["db"]
-        records = db.query(TagDB).all()
-        return [TagType(id=str(record.id), name=record.name, color=record.color) for record in records]
+        service = TagService(db)
+
+        tags = service.get_all_tags(filters)
+        return [TagType(id=str(tag.id), name=tag.name, color=tag.color) for tag in tags]
+    
