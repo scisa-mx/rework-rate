@@ -28,7 +28,7 @@ connection_string = (
     f"SERVER={DB_SERVER},{DB_PORT};"
     f"DATABASE={DB_NAME};"
     f"UID={DB_USER};"
-    f"PWD={DB_PASSWORD}"
+    f"PWD={DB_PASSWORD};"
     "TrustServerCertificate=yes;"
 )
 
