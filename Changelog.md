@@ -1,5 +1,32 @@
 # SCISA Benchmarks API
 
+
+## 0.5.0 - 16/07/2025
+Se agregan etiquetas a los repositorios, filtros más avanzados para el historial de rework, y se mejora la validación al actualizar etiquetas.
+
+### Added
+- [] Se agregan relaciones entre repositorios y etiquetas.
+- [] Se expone una mutación para crear etiquetas y otra para asignarlas a un repositorio.
+- [] Se agrega filtrado por nombre y etiquetas en la consulta del historial de rework.
+- [] Se agrega validación de color hexadecimal al actualizar una etiqueta.
+
+### Fixed
+- [] Ahora se puede cambiar el color de una etiqueta sin necesidad de modificar su nombre.
+- [] Se corrige un bug donde los repositorios sin etiquetas generaban errores en el filtrado.
+- [] Mejor manejo de errores cuando se intenta crear o actualizar una etiqueta con un nombre duplicado.
+
+### Changed
+- [] Refactor del TagService y separación de lógica de validación en colors.py.
+- [] Se actualiza la lógica de actualización de etiquetas para evitar validaciones innecesarias si no hay cambios en el nombre.
+
+### Deprecated
+
+
+### Removed
+
+
+### Security
+
 ## 0.4.0 - 18/07/2025
 ### Resumen
 Se mejora la API para manejar mejor los repositorios y se agrega un nuevo campo para el historial de rework. 
