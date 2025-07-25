@@ -6,3 +6,5 @@ pyodbc==4.0.39  # Para MSSQL
 python-dotenv==1.0.1
 pymssql==2.2.3
 strawberry-graphql==0.106.0
+alembic
+pydantic_settings
