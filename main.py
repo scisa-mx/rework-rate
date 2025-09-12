@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 class RootQuery(ReworkQuery, TagsQuery, RepositoryQuery):
     pass
 
-@strawberry.type
+@strawberry.type    
 class RootMutation(ReworkMutation, TagsMutation, RepositoryMutation):
     pass
 
